@@ -1,0 +1,26 @@
+# Java
+services/tradehub-api/target/
+services/tradehub-api/data/
+services/tradehub-api/uploads/
+*.class
+*.log
+.idea/
+*.iml
+
+# Node
+node_modules/
+.nuxt/
+.output/
+dist/
+apps/admin/dist/
+apps/storefront/.nuxt/
+apps/storefront/.output/
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
