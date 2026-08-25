@@ -4,10 +4,12 @@
     <input v-model="form.name" required :placeholder="$t('form.name')" />
     <input v-model="form.company" :placeholder="$t('form.company')" />
     <input v-model="form.email" type="email" required :placeholder="$t('form.email')" />
+    <input v-model="form.phone" :placeholder="$t('form.phone')" />
+    <input v-model="form.whatsapp" placeholder="WhatsApp" />
     <input v-model="form.country" :placeholder="$t('form.country')" />
     <input v-model="form.quantity" :placeholder="$t('form.quantity')" />
     <textarea v-model="form.message" rows="5" :placeholder="$t('form.message')" />
-    <label><input type="checkbox" v-model="agree" required /> I agree to the processing of this inquiry data.</label>
+    <label><input type="checkbox" v-model="agree" required /> {{ $t('form.agree') }}</label>
     <button class="btn" type="submit" :disabled="loading">{{ $t('form.submit') }}</button>
     <p v-if="done">{{ $t('form.ok') }}</p>
   </form>
@@ -20,7 +22,7 @@ const loading = ref(false)
 const done = ref(false)
 const agree = ref(false)
 const form = reactive({
-  name: '', company: '', email: '', country: '', quantity: '', message: '', website: '', productId: props.productId
+  name: '', company: '', email: '', phone: '', country: '', whatsapp: '', quantity: '', message: '', website: '', productId: props.productId
 })
 
 async function submit() {

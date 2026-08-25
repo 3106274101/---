@@ -1,12 +1,19 @@
 <template>
   <div class="th-login">
     <div class="th-login-card">
-      <h1>贸站通 TradeHub</h1>
-      <p>统一管理所有外贸独立站 · 演示账号 admin / admin123</p>
+      <div class="th-login-brand">
+        <svg class="logo-mark" viewBox="0 0 32 32" fill="none" width="28" height="28">
+          <path d="M16 3 28 10v12L16 29 4 22V10L16 3Z" stroke="#0a2540" stroke-width="1.7" />
+          <path d="M16 3v26M4 10l12 7 12-7" stroke="#0d9488" stroke-width="1.7" />
+        </svg>
+        TRADEHUB
+      </div>
+      <h1>贸站通工作台</h1>
+      <p>统一管理所有外贸独立站。演示账号 admin / admin123</p>
       <el-form @submit.prevent="submit">
-        <el-form-item><el-input v-model="username" placeholder="用户名" /></el-form-item>
-        <el-form-item><el-input v-model="password" type="password" placeholder="密码" show-password /></el-form-item>
-        <el-button type="primary" style="width: 100%; background: #0b1f3a; border: 0" :loading="loading" native-type="submit">登录</el-button>
+        <el-form-item><el-input v-model="username" placeholder="用户名" size="large" /></el-form-item>
+        <el-form-item><el-input v-model="password" type="password" placeholder="密码" show-password size="large" /></el-form-item>
+        <el-button type="primary" size="large" style="width: 100%" :loading="loading" native-type="submit">登录</el-button>
       </el-form>
     </div>
   </div>

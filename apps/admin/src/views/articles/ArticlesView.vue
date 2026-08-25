@@ -1,17 +1,32 @@
 <template>
-  <el-card>
-    <template #header>
-      <div style="display:flex;justify-content:space-between">
-        <span>博客 / 内容</span>
-        <el-button type="primary" @click="visible = true">写文章</el-button>
+  <div>
+    <div class="page-head">
+      <div>
+        <h1>内容</h1>
+        <p>博客文章用于主题聚类，封面与摘要会显示在独立站。</p>
       </div>
-    </template>
-    <el-table :data="list">
-      <el-table-column prop="title" label="标题" />
-      <el-table-column prop="slug" label="Slug" />
-      <el-table-column prop="status" label="状态" />
-    </el-table>
-    <el-dialog v-model="visible" title="文章" width="720px">
+      <el-button type="primary" @click="open()">写文章</el-button>
+    </div>
+
+    <div class="card-grid">
+      <div v-if="!list.length" class="empty-hint">还没有文章，点击「写文章」发布第一篇内容。</div>
+      <article v-for="row in list" :key="row.id" class="item-card clickable" @click="open(row)">
+        <img v-if="row.coverUrl" class="item-cover" :src="row.coverUrl" :alt="row.title" />
+        <div v-else class="item-cover ph">ARTICLE</div>
+        <div class="item-body">
+          <div class="item-head">
+            <h3>{{ row.title }}</h3>
+            <span class="pill" :class="row.status === 'live' ? 'pill-live' : 'pill-building'">{{ row.status === 'live' ? '已发布' : '草稿' }}</span>
+          </div>
+          <p>{{ row.summary || row.slug }}</p>
+        </div>
+        <div class="item-foot" @click.stop>
+          <el-button size="small" type="primary" @click="open(row)">编辑</el-button>
+        </div>
+      </article>
+    </div>
+
+    <el-dialog v-model="visible" :title="form.id ? '编辑文章' : '写文章'" width="720px">
       <el-form :model="form" label-width="100px">
         <el-form-item label="标题"><el-input v-model="form.title" /></el-form-item>
         <el-form-item label="Slug"><el-input v-model="form.slug" /></el-form-item>
@@ -19,7 +34,7 @@
         <el-form-item label="正文"><el-input v-model="form.content" type="textarea" :rows="8" /></el-form-item>
         <el-form-item label="封面"><el-input v-model="form.coverUrl" /></el-form-item>
         <el-form-item label="状态">
-          <el-select v-model="form.status">
+          <el-select v-model="form.status" style="width:100%">
             <el-option label="草稿" value="draft" />
             <el-option label="发布" value="live" />
           </el-select>
@@ -30,7 +45,7 @@
         <el-button type="primary" @click="save">保存</el-button>
       </template>
     </el-dialog>
-  </el-card>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -44,11 +59,16 @@ async function load() {
   const res: any = await http.get('/admin/articles', { params: { siteId: form.siteId } })
   list.value = res.data || []
 }
+function open(row?: any) {
+  Object.assign(form, row || { id: undefined, status: 'draft', siteId: Number(localStorage.getItem('th_site') || 1), title: '', slug: '', summary: '', content: '', coverUrl: '' })
+  visible.value = true
+}
 async function save() {
   form.siteId = Number(localStorage.getItem('th_site') || 1)
   form.seoTitle = form.title
   form.seoDescription = form.summary
-  await http.post('/admin/articles', form)
+  if (form.id) await http.put('/admin/articles/' + form.id, form)
+  else await http.post('/admin/articles', form)
   visible.value = false
   load()
 }

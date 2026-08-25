@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class TenantAdminController {
     private final TenantService tenantService;
-    private final SiteMapper siteMapper;
 
     @GetMapping("/tenants")
     public R<?> tenants() {
@@ -44,15 +43,13 @@ public class TenantAdminController {
     }
 
     @PostMapping("/sites")
-    public R<?> createSite(@RequestBody Site body) {
-        Site saved = tenantService.saveSite(body);
-        return R.ok(tenantService.siteView(saved));
+    public R<?> createSite(@RequestBody java.util.Map<String, Object> body) {
+        return R.ok(tenantService.saveSitePayload(body));
     }
 
     @PutMapping("/sites/{id}")
-    public R<?> updateSite(@PathVariable Long id, @RequestBody Site body) {
-        body.setId(id);
-        Site saved = tenantService.saveSite(body);
-        return R.ok(tenantService.siteView(siteMapper.selectById(saved.getId())));
+    public R<?> updateSite(@PathVariable Long id, @RequestBody java.util.Map<String, Object> body) {
+        body.put("id", id);
+        return R.ok(tenantService.saveSitePayload(body));
     }
 }

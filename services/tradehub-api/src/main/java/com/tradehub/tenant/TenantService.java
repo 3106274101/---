@@ -29,6 +29,19 @@ public class TenantService {
 
     public Tenant saveTenant(Tenant body) {
         requireSuper();
+        if (body.getStatus() == null) {
+            body.setStatus(1);
+        }
+        if (!StringUtils.hasText(body.getPackageCode())) {
+            body.setPackageCode("standard");
+        }
+        Tenant dup = tenantMapper.selectOne(new LambdaQueryWrapper<Tenant>()
+                .eq(Tenant::getCode, body.getCode())
+                .ne(body.getId() != null, Tenant::getId, body.getId())
+                .last("limit 1"));
+        if (dup != null) {
+            throw new BizException(422, "tenant code already exists");
+        }
         if (body.getId() == null) {
             tenantMapper.insert(body);
         } else {
@@ -59,9 +72,58 @@ public class TenantService {
         } else {
             Site db = siteMapper.selectById(body.getId());
             assertOwned(db);
+            if (!StringUtils.hasText(body.getBrandJson())) {
+                body.setBrandJson(db.getBrandJson());
+            }
+            if (!StringUtils.hasText(body.getSeoJson())) {
+                body.setSeoJson(db.getSeoJson());
+            }
             siteMapper.updateById(body);
         }
         return body;
+    }
+
+    @SuppressWarnings("unchecked")
+    public Map<String, Object> saveSitePayload(Map<String, Object> body) {
+        Site site;
+        Object idRaw = body.get("id");
+        if (idRaw == null) {
+            site = new Site();
+            site.setTenantId(workingTenantId());
+            site.setTheme("industrial-fuel");
+            site.setDefaultLocale("en");
+            site.setLocales("en,zh");
+            site.setStatus("building");
+        } else {
+            site = getSite(Long.valueOf(idRaw.toString()));
+        }
+        if (body.get("name") != null) {
+            site.setName(body.get("name").toString());
+        }
+        if (body.get("code") != null) {
+            site.setCode(body.get("code").toString());
+        }
+        if (body.get("theme") != null) {
+            site.setTheme(body.get("theme").toString());
+        }
+        if (body.get("status") != null) {
+            site.setStatus(body.get("status").toString());
+        }
+        if (body.get("defaultLocale") != null) {
+            site.setDefaultLocale(body.get("defaultLocale").toString());
+        }
+        if (body.get("locales") instanceof List<?> list) {
+            site.setLocales(list.stream().map(Object::toString).reduce((a, b) -> a + "," + b).orElse("en"));
+        } else if (body.get("locales") != null) {
+            site.setLocales(body.get("locales").toString());
+        }
+        if (body.get("brand") instanceof Map<?, ?> brand) {
+            site.setBrandJson(Jsons.toJson(brand));
+        }
+        if (body.get("seo") instanceof Map<?, ?> seo) {
+            site.setSeoJson(Jsons.toJson(seo));
+        }
+        return siteView(saveSite(site));
     }
 
     public Site getSite(Long id) {

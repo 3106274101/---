@@ -1,6 +1,6 @@
 <template>
   <div>
-    <BlockRenderer v-if="home?.page?.blocks" :blocks="home.page.blocks" :products="home.featuredProducts" />
+    <BlockRenderer v-if="home?.page?.blocks" :blocks="home.page.blocks" :products="home.featuredProducts" :articles="home.articles" />
   </div>
 </template>
 
@@ -28,7 +28,7 @@ usePageSeo({
     {
       '@context': 'https://schema.org',
       '@type': 'WebSite',
-      name: 'FuelTech',
+      name: brand.logoText || 'FuelTech',
       url: config.public.siteUrl,
       potentialAction: {
         '@type': 'SearchAction',

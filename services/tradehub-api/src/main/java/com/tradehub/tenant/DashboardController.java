@@ -32,6 +32,8 @@ public class DashboardController {
         data.put("inquiriesWeek", inquiryService.countThisWeek(tenantId));
         data.put("languages", 2);
         data.put("sitesList", tenantService.listSites().getList());
+        data.put("recentInquiries", inquiryService.adminList(null, 1, 8).getList());
+        data.put("newInquiries", inquiryService.adminList("new", 1, 20).getTotal());
         return R.ok(data);
     }
 }

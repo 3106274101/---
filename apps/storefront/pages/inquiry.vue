@@ -1,8 +1,17 @@
 <template>
   <div class="wrap section">
-    <h1>Request a quotation</h1>
-    <p>Tell us voltage, hose count, destination port and OEM needs.</p>
-    <InquiryForm />
+    <div class="contact-grid">
+      <div>
+        <h1>{{ $t('cta') }}</h1>
+        <p>{{ $t('inquiryLead') }}</p>
+        <ul>
+          <li>Voltage: 110V / 220V / 380V</li>
+          <li>Hose count and fuel types</li>
+          <li>Destination port and OEM panel</li>
+        </ul>
+      </div>
+      <InquiryForm />
+    </div>
   </div>
 </template>
 <script setup lang="ts">

@@ -1,23 +1,31 @@
 <template>
-  <el-card>
-    <template #header>
-      <div style="display:flex;justify-content:space-between">
-        <span>页面</span>
-        <el-button type="primary" @click="create">新建页面</el-button>
+  <div>
+    <div class="page-head">
+      <div>
+        <h1>页面搭建</h1>
+        <p>用区块拼首页、关于我们和落地页，点卡片即可进入装修。</p>
       </div>
-    </template>
-    <el-table :data="list">
-      <el-table-column prop="title" label="标题" />
-      <el-table-column prop="slug" label="Slug" />
-      <el-table-column prop="pageType" label="类型" />
-      <el-table-column prop="status" label="状态" />
-      <el-table-column label="操作" width="140">
-        <template #default="{ row }">
-          <el-button size="small" @click="$router.push('/pages/' + row.id)">搭建</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
-  </el-card>
+      <el-button type="primary" @click="create">新建页面</el-button>
+    </div>
+
+    <div class="card-grid">
+      <div v-if="!list.length" class="empty-hint">还没有页面，点击「新建页面」开始搭建。</div>
+      <article v-for="row in list" :key="row.id" class="item-card clickable" @click="$router.push('/pages/' + row.id)">
+        <div class="item-cover ph page-banner">{{ typeLabel(row.pageType) }}</div>
+        <div class="item-body">
+          <div class="item-head">
+            <h3>{{ row.title }}</h3>
+            <span class="pill" :class="row.status === 'live' ? 'pill-live' : 'pill-building'">{{ row.status === 'live' ? '已发布' : '草稿' }}</span>
+          </div>
+          <p>/{{ row.slug }}</p>
+        </div>
+        <div class="item-foot" @click.stop>
+          <el-button size="small" type="primary" @click="$router.push('/pages/' + row.id)">装修</el-button>
+          <el-button size="small" @click="preview(row)">预览</el-button>
+        </div>
+      </article>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -27,11 +35,18 @@ import http from '../../api/http'
 
 const list = ref<any[]>([])
 const router = useRouter()
+const types: Record<string, string> = {
+  home: '首页', about: '关于我们', factory: '工厂', certificates: '证书',
+  faq: 'FAQ', contact: '联系', solutions: '方案', custom: '自定义页'
+}
 onMounted(async () => {
   const siteId = localStorage.getItem('th_site')
   const res: any = await http.get('/admin/pages', { params: { siteId } })
   list.value = res.data || []
 })
+function typeLabel(type: string) {
+  return types[type] || type || '页面'
+}
 async function create() {
   const siteId = Number(localStorage.getItem('th_site') || 1)
   const res: any = await http.post('/admin/pages', {
@@ -40,4 +55,19 @@ async function create() {
   })
   router.push('/pages/' + res.data.id)
 }
+function preview(row: any) {
+  const path = row.slug === 'home' ? '/en' : `/en/${row.slug}`
+  window.open('http://localhost:3000' + path, '_blank')
+}
 </script>
+
+<style scoped>
+.page-banner {
+  height: 88px;
+  background: #122033;
+  color: #d5e0ea !important;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+}
+.item-head h3 { margin: 0; flex: 1; }
+</style>
