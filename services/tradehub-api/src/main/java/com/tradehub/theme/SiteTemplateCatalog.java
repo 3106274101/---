@@ -7,15 +7,21 @@ import java.util.Map;
 
 /** Five storefront skins: visual tokens plus starter CMS pages. */
 public final class SiteTemplateCatalog {
-    public static final String FILES = "http://localhost:8080/files/demo/";
-    public static final String IMG_AURORA = FILES + "aurora.jpg";
-    public static final String IMG_HONESTY = FILES + "honesty.png";
-    public static final String IMG_ELITE = FILES + "elite.jpg";
-    public static final String IMG_BRILLIANCE = FILES + "brilliance.jpg";
-    public static final String IMG_PRESTIGE = FILES + "prestige-v.jpg";
-    public static final String IMG_FACTORY = FILES + "advantage.png";
-    public static final String IMG_ABOUT = FILES + "about.jpg";
-    public static final String IMG_STATION = FILES + "station.png";
+    public static String files() {
+        String base = System.getenv("TRADEHUB_UPLOAD_PUBLIC_BASE");
+        if (base == null || base.isBlank()) {
+            String render = System.getenv("RENDER_EXTERNAL_URL");
+            base = (render == null || render.isBlank() ? "http://localhost:8080" : render) + "/files";
+        }
+        if (base.endsWith("/")) {
+            base = base.substring(0, base.length() - 1);
+        }
+        return base + "/demo/";
+    }
+
+    public static String img(String fileName) {
+        return files() + fileName;
+    }
 
     public static final String ABOUT_EN = "Zhenghe Machinery Equipment Co., Ltd., a professional Chinese manufacturer with 17-year experience, produces and wholesales fuel dispensers, mining fuel dispensers, LPG dispensers, gas station management systems and related parts.";
     public static final String ABOUT_ZH = "辉县市正和机械设备有限公司是专业的中国制造商，拥有 17 年行业经验，生产并批发加油机、矿用加油机、LPG 加气机、加油站管理系统及相关配件。";
@@ -58,19 +64,19 @@ public final class SiteTemplateCatalog {
         return switch (normalize(id)) {
             case "blueprint" -> defOf("blueprint", "Engineering Blueprint", "工程蓝图",
                     "Technical, spec-first layout for OEM buyers.", "偏参数与工程感，适合询盘型买家。",
-                    "#123a56", "#c9a227", "dark", "overlay", "2px", "tech", IMG_HONESTY);
+                    "#123a56", "#c9a227", "dark", "overlay", "2px", "tech", img("honesty.png"));
             case "catalog" -> defOf("catalog", "Clean Catalog", "清爽目录",
                     "Bright product-first catalog with soft cards.", "浅色目录风，商品卡片更突出。",
-                    "#1a3a32", "#0f766e", "light", "split", "12px", "sans", IMG_ELITE);
+                    "#1a3a32", "#0f766e", "light", "split", "12px", "sans", img("elite.jpg"));
             case "midnight" -> defOf("midnight", "Midnight Export", "暗金出口",
                     "Dark luxury skin for high-end OEM branding.", "深色金点，偏品牌展示。",
-                    "#111827", "#c9a227", "dark", "overlay", "2px", "serif", IMG_BRILLIANCE);
+                    "#111827", "#c9a227", "dark", "overlay", "2px", "serif", img("brilliance.jpg"));
             case "signal" -> defOf("signal", "Safety Signal", "工地警示",
                     "High-contrast orange for mining and depot sites.", "高对比警示橙，适合矿山与车场。",
-                    "#1c1917", "#ea580c", "dark", "split", "0px", "sans", IMG_PRESTIGE);
+                    "#1c1917", "#ea580c", "dark", "split", "0px", "sans", img("prestige-v.jpg"));
             default -> defOf("industrial", "Industrial Navy", "工业海军蓝",
                     "Classic factory site: navy, split hero, clear specs.", "经典工厂站：海军蓝、左右首屏。",
-                    "#0b1f3a", "#c2410c", "light", "split", "4px", "sans", IMG_AURORA);
+                    "#0b1f3a", "#c2410c", "light", "split", "4px", "sans", img("aurora.jpg"));
         };
     }
 
@@ -231,23 +237,23 @@ public final class SiteTemplateCatalog {
         return List.of(
                 new PageSeed("about", "about", "About ZhengHe Machinery", "关于正和机械",
                         List.of(
-                                hero(layout, IMG_ABOUT, "17 years in petroleum equipment", ABOUT_EN, "Contact Us", "/contact"),
+                                hero(layout, img("about.jpg"), "17 years in petroleum equipment", ABOUT_EN, "Contact Us", "/contact"),
                                 rich("<p>" + ABOUT_EN + "</p><p>Factory: 50 Meters West Of Hanying Village, Zhaogu Township, Xinxiang, Henan. Cathy@machineryzh.com · +86 18567535165.</p>"),
                                 factory("Xinxiang, Henan OEM factory", "Fuel dispensers, mining units, LPG dispensers and parts.")
                         ),
                         List.of(
-                                hero(layout, IMG_ABOUT, "深耕石油设备 17 年", ABOUT_ZH, "联系我们", "/contact"),
+                                hero(layout, img("about.jpg"), "深耕石油设备 17 年", ABOUT_ZH, "联系我们", "/contact"),
                                 rich("<p>" + ABOUT_ZH + "</p><p>工厂：河南省新乡市赵固乡韩营村西 50 米。Cathy@machineryzh.com · +86 18567535165。</p>"),
                                 factory("河南新乡 OEM 工厂", "加油机、矿用机、LPG 加气机与配件。")
                         )),
                 new PageSeed("factory", "factory", "Factory & Capability", "工厂与产能",
                         List.of(
-                                hero(layout, IMG_ABOUT, "Henan manufacturer for global stations", "", "Get a Quote", "/inquiry"),
+                                hero(layout, img("about.jpg"), "Henan manufacturer for global stations", "", "Get a Quote", "/inquiry"),
                                 factory("From island dispensers to mini stations",
                                         "Honesty compact pumps, Aurora/Brilliance multi-nozzle islands, Prestige 300–6000L stations.")
                         ),
                         List.of(
-                                hero(layout, IMG_ABOUT, "面向全球加油站的河南厂家", "", "获取报价", "/inquiry"),
+                                hero(layout, img("about.jpg"), "面向全球加油站的河南厂家", "", "获取报价", "/inquiry"),
                                 factory("从岛式机到微型站", "紧凑诚信系列、极光/辉煌多枪机、尊享 300–6000L 微型站。")
                         )),
                 new PageSeed("certificates", "certificates", "Certificates", "资质证书",
@@ -259,11 +265,11 @@ public final class SiteTemplateCatalog {
                         List.of(faq(faqEn())), List.of(faq(faqZh()))),
                 new PageSeed("contact", "contact", "Contact Us", "联系我们",
                         List.of(
-                                hero(layout, IMG_STATION, "Talk to Cathy", "+86 18567535165 · Cathy@machineryzh.com · Xinxiang, Henan", "Send inquiry", "/inquiry"),
+                                hero(layout, img("station.png"), "Talk to Cathy", "+86 18567535165 · Cathy@machineryzh.com · Xinxiang, Henan", "Send inquiry", "/inquiry"),
                                 Map.of("type", "inquiryForm", "props", Map.of("title", "Tell us voltage, nozzle count, fuel type and destination port"))
                         ),
                         List.of(
-                                hero(layout, IMG_STATION, "联系 Cathy", "+86 18567535165 · Cathy@machineryzh.com · 河南新乡", "提交询盘", "/inquiry"),
+                                hero(layout, img("station.png"), "联系 Cathy", "+86 18567535165 · Cathy@machineryzh.com · 河南新乡", "提交询盘", "/inquiry"),
                                 Map.of("type", "inquiryForm", "props", Map.of("title", "请告知电压、枪数、油品与目的港"))
                         )),
                 new PageSeed("solutions", "solutions", "Solutions", "解决方案",
@@ -315,7 +321,7 @@ public final class SiteTemplateCatalog {
     }
 
     private static Map<String, Object> factory(String heading, String text) {
-        return Map.of("type", "factory", "props", Map.of("heading", heading, "text", text, "image", IMG_FACTORY));
+        return Map.of("type", "factory", "props", Map.of("heading", heading, "text", text, "image", img("advantage.png")));
     }
 
     private static Map<String, Object> faq(List<Map<String, String>> items) {

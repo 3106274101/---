@@ -16,8 +16,9 @@ public class WebConfig implements WebMvcConfigurer, MetaObjectHandler {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        String dir = uploadDir.endsWith("/") ? uploadDir : uploadDir + "/";
         registry.addResourceHandler("/files/**")
-                .addResourceLocations("file:" + uploadDir + "/");
+                .addResourceLocations("file:" + dir, "classpath:/static/files/");
     }
 
     @Override

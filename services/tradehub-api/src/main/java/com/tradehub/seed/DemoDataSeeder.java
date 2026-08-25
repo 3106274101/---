@@ -34,6 +34,7 @@ import com.tradehub.tenant.Tenant;
 import com.tradehub.tenant.TenantMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -46,19 +47,8 @@ import java.util.Map;
 @Component
 @RequiredArgsConstructor
 public class DemoDataSeeder implements CommandLineRunner {
-    private static final String FILES = "http://localhost:8080/files/demo/";
-    private static final String HERO = FILES + "about.jpg";
-    private static final String STATION = FILES + "station.png";
-    private static final String FACTORY = FILES + "advantage.png";
-    private static final String HONESTY = FILES + "honesty.png";
-    private static final String INTELLIGENT = FILES + "intelligent.jpg";
-    private static final String CLEVER = FILES + "clever.jpg";
-    private static final String ELITE = FILES + "elite.jpg";
-    private static final String AURORA = FILES + "aurora.jpg";
-    private static final String BRILLIANCE = FILES + "brilliance.jpg";
-    private static final String PRESTIGE_H = FILES + "prestige-h.jpg";
-    private static final String PRESTIGE_V = FILES + "prestige-v.jpg";
-    private static final String NOZZLE = FILES + "nozzle.png";
+    @Value("${tradehub.upload.public-base:http://localhost:8080/files}")
+    private String publicBase;
 
     private static final String ABOUT_EN = "Zhenghe Machinery Equipment Co., Ltd., a professional Chinese manufacturer with 17-year experience, produces and wholesales fuel dispensers, mining fuel dispensers, LPG dispensers, gas station management systems and related parts. Committed to being a modernized, computerized leader in petroleum equipment, our innovative and strong team solves unsolved problems in the field. Welcome to cooperate!";
     private static final String ABOUT_ZH = "辉县市正和机械设备有限公司是专业的中国制造商，拥有 17 年行业经验，生产并批发加油机、矿用加油机、LPG 加气机、加油站管理系统及相关配件。公司致力于成为石油设备领域现代化、信息化的领先企业，欢迎合作。";
@@ -79,6 +69,14 @@ public class DemoDataSeeder implements CommandLineRunner {
     private final InquiryMapper inquiryMapper;
     private final RedirectMapper redirectMapper;
     private final PasswordEncoder passwordEncoder;
+
+    private String file(String name) {
+        String base = publicBase == null ? "http://localhost:8080/files" : publicBase;
+        if (base.endsWith("/")) {
+            base = base.substring(0, base.length() - 1);
+        }
+        return base + "/demo/" + name;
+    }
 
     @Override
     public void run(String... args) {
@@ -115,7 +113,7 @@ public class DemoDataSeeder implements CommandLineRunner {
                 "origin", "Henan, China"
         );
 
-        Product honesty = product(tenant, site, dispensers, "honesty-series", "ZH-H", true, HONESTY, island,
+        Product honesty = product(tenant, site, dispensers, "honesty-series", "ZH-H", true, file("honesty.png"), island,
                 "Honesty Series Fuel Dispenser", "诚信系列加油机",
                 "Compact 1–2 nozzle unit for public transport, mining and fleet yards.",
                 "1–2 枪紧凑机型，适合公交、矿山与车队油库。",
@@ -130,7 +128,7 @@ public class DemoDataSeeder implements CommandLineRunner {
                         "单枪配置示例：防爆电机、叶片泵、流量计、液晶屏、主板、累加器。AC220V，5–50 L/min，136 kg，3/4\" 油枪配 4 米胶管，尺寸 700×500×1500 mm。",
                         "型号 ZH-H1111B/G/T（1 枪）、ZH-H2222B/G/T（2 枪）。"));
 
-        product(tenant, site, dispensers, "intelligent-series", "ZH-I", true, INTELLIGENT, island,
+        product(tenant, site, dispensers, "intelligent-series", "ZH-I", true, file("intelligent.jpg"), island,
                 "Intelligent Series Fuel Dispenser", "智能系列加油机",
                 "Reliable island dispenser with accurate output and optional GPRS remote monitoring.",
                 "计量稳定，可加装 GPRS 远程监控的岛式加油机。",
@@ -145,7 +143,7 @@ public class DemoDataSeeder implements CommandLineRunner {
                         "双枪示例：2 台防爆电机、Tokheim 泵与流量计、电磁阀、4 块液晶、2 个键盘。3/4\" 油枪，5–50 L/min，2.5 kW，280 kg，1020×440×1650 mm。",
                         "型号 ZH-I1111B/G/T、ZH-I2222B/G/T。"));
 
-        product(tenant, site, dispensers, "clever-series", "ZH-C", false, CLEVER, island,
+        product(tenant, site, dispensers, "clever-series", "ZH-C", false, file("clever.jpg"), island,
                 "Clever Series Fuel Dispenser", "灵巧系列加油机",
                 "Durable gasoline/diesel dispenser with logo customization and optional GPRS.",
                 "汽油/柴油加油机，可定制 Logo，可选 GPRS。",
@@ -160,7 +158,7 @@ public class DemoDataSeeder implements CommandLineRunner {
                         "双枪示例：3/4\" 或 1\" 油枪，柴油 5–80 L/min，汽油 5–50 L/min，2.2 kW，约 200 kg，1010×500×2150 mm。",
                         "型号 ZH-C1111B/G/T、ZH-C2222B/G/T。"));
 
-        product(tenant, site, dispensers, "elite-series", "ZH-E", true, ELITE, island,
+        product(tenant, site, dispensers, "elite-series", "ZH-E", true, file("elite.jpg"), island,
                 "Elite Series Fuel Dispenser", "精英系列加油机",
                 "Station dispenser with OEM logo and Bennett / Tatsuno / Tokheim options.",
                 "可定制 Logo，可选 Bennett、Tatsuno 或 Tokheim 配置。",
@@ -175,7 +173,7 @@ public class DemoDataSeeder implements CommandLineRunner {
                         "双枪示例：防爆电机、Tokheim 泵与表、电磁阀、4 块液晶。油枪 3/4\" 与 1\"，柴油 5–80 L/min，汽油 5–50 L/min，2.2 kW，260 kg，1010×500×2150 mm。",
                         "型号 ZH-E1111B/G/T、ZH-E2222B/G/T。"));
 
-        product(tenant, site, dispensers, "aurora-series", "ZH-A", true, AURORA, island,
+        product(tenant, site, dispensers, "aurora-series", "ZH-A", true, file("aurora.jpg"), island,
                 "Aurora Series Fuel Dispenser", "极光系列加油机",
                 "Elegant 2–8 nozzle island dispenser with optional GPRS.",
                 "外观典雅的 2–8 枪岛式机，可选 GPRS。",
@@ -190,7 +188,7 @@ public class DemoDataSeeder implements CommandLineRunner {
                         "双枪示例：220V 防爆电机、Tatsuno 泵与流量计、886 液晶。AC220V，5–50 L/min，385 kg，1050×650×2390 mm。",
                         "型号 ZH-A212 / A222 / A424 / A636 / A848（B/G/T）。"));
 
-        product(tenant, site, dispensers, "brilliance-series", "ZH-B", false, BRILLIANCE, island,
+        product(tenant, site, dispensers, "brilliance-series", "ZH-B", false, file("brilliance.jpg"), island,
                 "Brilliance Series Fuel Dispenser", "辉煌系列加油机",
                 "4–8 nozzle high-capacity dispenser with optional GPRS.",
                 "4–8 枪大容量加油机，可选 GPRS。",
@@ -218,7 +216,7 @@ public class DemoDataSeeder implements CommandLineRunner {
                 "origin", "Henan, China"
         );
 
-        product(tenant, site, mini, "prestige-v-series", "ZH-VP", true, PRESTIGE_V, miniSpec,
+        product(tenant, site, mini, "prestige-v-series", "ZH-VP", true, file("prestige-v.jpg"), miniSpec,
                 "Prestige-V Vertical Mini Gas Station", "尊享-V 立式微型加油站",
                 "Stand-up 1800–2100 mm mobile station, 300L–6000L tank, 1–3 products, OEM/ODM.",
                 "站立加油高度 1800–2100 mm，罐容 300–6000L，1–3 油品，支持 OEM/ODM。",
@@ -233,7 +231,7 @@ public class DemoDataSeeder implements CommandLineRunner {
                         "三枪示例：3/4\" 油枪，5–40 L/min，AC220V，2250W，1350×1800×1800 mm，650 kg。",
                         "型号 ZH-VP300L 至 VP6000L。"));
 
-        product(tenant, site, mini, "prestige-h-series", "ZH-HP", false, PRESTIGE_H, miniSpec,
+        product(tenant, site, mini, "prestige-h-series", "ZH-HP", false, file("prestige-h.jpg"), miniSpec,
                 "Prestige-H Horizontal Mini Gas Station", "尊享-H 卧式微型加油站",
                 "Low-profile horizontal station, customizable logo, 300L–6000L tanks.",
                 "卧式低重心微型站，Logo 可定制，罐容 300–6000L。",
@@ -248,7 +246,7 @@ public class DemoDataSeeder implements CommandLineRunner {
                         "双枪示例：3/4\" 胶管，5–40 L/min，AC220V，0.6 kW，1000×1500×1100 mm，330 kg。",
                         "罐容与品牌支持 OEM/ODM。"));
 
-        product(tenant, site, parts, "fuel-nozzle-11a", "11A", false, NOZZLE,
+        product(tenant, site, parts, "fuel-nozzle-11a", "11A", false, file("nozzle.png"),
                 Map.of("size", "3/4\"", "type", "Automatic shut-off", "medium", "Gasoline / Diesel"),
                 "3/4\" 11A Fuel Dispenser Nozzle", "3/4\" 11A 加油机油枪",
                 "Precision automatic nozzle for accurate output, durable sealing and easy handling.",
@@ -316,12 +314,12 @@ public class DemoDataSeeder implements CommandLineRunner {
                 Map.entry("address", "50 Meters West Of Hanying Village, Zhaogu Township, Xinxiang City, Henan Province, China"),
                 Map.entry("founded", "2009"),
                 Map.entry("countries", "Global"),
-                Map.entry("heroImage", HERO)
+                Map.entry("heroImage", file("about.jpg"))
         )));
         site.setSeoJson(Jsons.toJson(Map.of(
                 "title", "Fuel Dispenser Manufacturer | Huixian Zhenghe Machinery",
                 "description", "17-year OEM factory in Henan: fuel dispensers, mining dispensers, LPG dispensers, mini gas stations and parts. 1–6 nozzles, optional GPRS, 110/220/380V.",
-                "ogImage", HERO
+                "ogImage", file("about.jpg")
         )));
         siteMapper.insert(site);
         Domain d1 = new Domain();
@@ -387,7 +385,7 @@ public class DemoDataSeeder implements CommandLineRunner {
         p.setSlug(slug);
         p.setModel(model);
         p.setCoverUrl(cover);
-        p.setGalleryJson(Jsons.toJson(List.of(cover, STATION, FACTORY)));
+        p.setGalleryJson(Jsons.toJson(List.of(cover, file("station.png"), file("advantage.png"))));
         p.setAttrJson(Jsons.toJson(attrs));
         p.setStatus("live");
         p.setFeatured(featured ? 1 : 0);
@@ -425,22 +423,22 @@ public class DemoDataSeeder implements CommandLineRunner {
                 "ZhengHe | Fuel Dispenser Manufacturer", "正和机械 | 加油机厂家",
                 homeBlocksEn(), homeBlocksZh());
         page(tenant, site, "about", "about", "About ZhengHe Machinery", "关于正和机械", List.of(
-                Map.of("type", "hero", "props", Map.of("heading", "17 years in petroleum equipment", "subtitle", ABOUT_EN, "image", HERO, "cta", "Contact Us", "ctaTo", "/contact")),
+                Map.of("type", "hero", "props", Map.of("heading", "17 years in petroleum equipment", "subtitle", ABOUT_EN, "image", file("about.jpg"), "cta", "Contact Us", "ctaTo", "/contact")),
                 Map.of("type", "richText", "props", Map.of("html", "<p>" + ABOUT_EN + "</p><p>Factory address: 50 Meters West Of Hanying Village, Zhaogu Township, Xinxiang City, Henan Province, China. Export contact Cathy@machineryzh.com · +86 18567535165 (phone / WhatsApp / WeChat).</p>")),
-                Map.of("type", "factory", "props", Map.of("heading", "Xinxiang, Henan OEM factory", "image", FACTORY, "text", "Fuel dispensers, mining dispensers, LPG dispensers, station management systems and spare parts from one manufacturer."))
+                Map.of("type", "factory", "props", Map.of("heading", "Xinxiang, Henan OEM factory", "image", file("advantage.png"), "text", "Fuel dispensers, mining dispensers, LPG dispensers, station management systems and spare parts from one manufacturer."))
         ), List.of(
-                Map.of("type", "hero", "props", Map.of("heading", "深耕石油设备 17 年", "subtitle", ABOUT_ZH, "image", HERO, "cta", "联系我们", "ctaTo", "/contact")),
+                Map.of("type", "hero", "props", Map.of("heading", "深耕石油设备 17 年", "subtitle", ABOUT_ZH, "image", file("about.jpg"), "cta", "联系我们", "ctaTo", "/contact")),
                 Map.of("type", "richText", "props", Map.of("html", "<p>" + ABOUT_ZH + "</p><p>工厂地址：河南省新乡市赵固乡韩营村西 50 米。出口联系 Cathy@machineryzh.com · +86 18567535165（电话 / WhatsApp / 微信）。</p>")),
-                Map.of("type", "factory", "props", Map.of("heading", "河南新乡 OEM 工厂", "image", FACTORY, "text", "加油机、矿用加油机、LPG 加气机、加油站管理系统与配件，厂家直供。"))
+                Map.of("type", "factory", "props", Map.of("heading", "河南新乡 OEM 工厂", "image", file("advantage.png"), "text", "加油机、矿用加油机、LPG 加气机、加油站管理系统与配件，厂家直供。"))
         ));
         page(tenant, site, "factory", "factory", "Factory & Capability", "工厂与产能", List.of(
-                Map.of("type", "hero", "props", Map.of("heading", "Henan manufacturer for global stations", "image", HERO)),
-                Map.of("type", "factory", "props", Map.of("heading", "From island dispensers to mini stations", "image", FACTORY,
+                Map.of("type", "hero", "props", Map.of("heading", "Henan manufacturer for global stations", "image", file("about.jpg"))),
+                Map.of("type", "factory", "props", Map.of("heading", "From island dispensers to mini stations", "image", file("advantage.png"),
                         "text", "Honesty compact pumps for mining, Aurora/Brilliance multi-nozzle islands, Prestige 300–6000L mini stations, plus nozzles, motors and solenoid valves.")),
                 Map.of("type", "richText", "props", Map.of("html", "<p>Place of origin: Henan, China. Voltage options 110V / 220V / 380V. OEM logo and GPRS available on most series.</p>"))
         ), List.of(
-                Map.of("type", "hero", "props", Map.of("heading", "面向全球加油站的河南厂家", "image", HERO)),
-                Map.of("type", "factory", "props", Map.of("heading", "从岛式机到微型站", "image", FACTORY,
+                Map.of("type", "hero", "props", Map.of("heading", "面向全球加油站的河南厂家", "image", file("about.jpg"))),
+                Map.of("type", "factory", "props", Map.of("heading", "从岛式机到微型站", "image", file("advantage.png"),
                         "text", "矿山用诚信系列、极光/辉煌多枪岛式机、尊享 300–6000L 微型站，以及油枪、电机与电磁阀。")),
                 Map.of("type", "richText", "props", Map.of("html", "<p>产地河南。电压 110/220/380V。多数系列支持 OEM Logo 与 GPRS。</p>"))
         ));
@@ -452,10 +450,10 @@ public class DemoDataSeeder implements CommandLineRunner {
         page(tenant, site, "faq", "faq", "FAQ", "常见问题", List.of(Map.of("type", "faq", "props", Map.of("items", faqEn()))),
                 List.of(Map.of("type", "faq", "props", Map.of("items", faqZh()))));
         page(tenant, site, "contact", "contact", "Contact Us", "联系我们", List.of(
-                Map.of("type", "hero", "props", Map.of("heading", "Talk to Cathy", "subtitle", "+86 18567535165 · Cathy@machineryzh.com · Xinxiang, Henan", "image", STATION, "cta", "Send inquiry", "ctaTo", "/inquiry")),
+                Map.of("type", "hero", "props", Map.of("heading", "Talk to Cathy", "subtitle", "+86 18567535165 · Cathy@machineryzh.com · Xinxiang, Henan", "image", file("station.png"), "cta", "Send inquiry", "ctaTo", "/inquiry")),
                 Map.of("type", "inquiryForm", "props", Map.of("title", "Tell us voltage, nozzle count, fuel type and destination port"))
         ), List.of(
-                Map.of("type", "hero", "props", Map.of("heading", "联系 Cathy", "subtitle", "+86 18567535165 · Cathy@machineryzh.com · 河南新乡", "image", STATION, "cta", "提交询盘", "ctaTo", "/inquiry")),
+                Map.of("type", "hero", "props", Map.of("heading", "联系 Cathy", "subtitle", "+86 18567535165 · Cathy@machineryzh.com · 河南新乡", "image", file("station.png"), "cta", "提交询盘", "ctaTo", "/inquiry")),
                 Map.of("type", "inquiryForm", "props", Map.of("title", "请告知电压、枪数、油品与目的港"))
         ));
         page(tenant, site, "solutions", "solutions", "Solutions", "解决方案", List.of(
@@ -497,12 +495,12 @@ public class DemoDataSeeder implements CommandLineRunner {
                         "cta", "Get a Quote",
                         "ctaTo", "/inquiry",
                         "layout", "split",
-                        "image", AURORA
+                        "image", file("aurora.jpg")
                 )),
                 Map.of("type", "trustBar", "props", Map.of("items", List.of("17 years", "1–6 nozzles", "Optional GPRS", "110/220/380V"))),
                 Map.of("type", "productGrid", "props", Map.of("source", "featured", "heading", "Honesty · Intelligent · Elite · Aurora · Prestige-V")),
                 Map.of("type", "solutions", "props", Map.of("heading", "What we supply", "items", solutionsEn())),
-                Map.of("type", "factory", "props", Map.of("heading", "About ZhengHe", "image", FACTORY, "text", ABOUT_EN)),
+                Map.of("type", "factory", "props", Map.of("heading", "About ZhengHe", "image", file("advantage.png"), "text", ABOUT_EN)),
                 Map.of("type", "faq", "props", Map.of("items", faqEn())),
                 Map.of("type", "blogTeaser", "props", Map.of("heading", "Fuel dispenser buying notes")),
                 Map.of("type", "cta", "props", Map.of("heading", "Need 2–6 nozzle 220V/380V units or a 3000L mini station?", "cta", "Email Cathy", "ctaTo", "/inquiry"))
@@ -517,12 +515,12 @@ public class DemoDataSeeder implements CommandLineRunner {
                         "cta", "获取报价",
                         "ctaTo", "/inquiry",
                         "layout", "split",
-                        "image", AURORA
+                        "image", file("aurora.jpg")
                 )),
                 Map.of("type", "trustBar", "props", Map.of("items", List.of("17 年经验", "1–6 枪可选", "可选 GPRS", "110/220/380V"))),
                 Map.of("type", "productGrid", "props", Map.of("source", "featured", "heading", "诚信 · 智能 · 精英 · 极光 · 尊享-V")),
                 Map.of("type", "solutions", "props", Map.of("heading", "主要产品", "items", solutionsZh())),
-                Map.of("type", "factory", "props", Map.of("heading", "关于正和", "image", FACTORY, "text", ABOUT_ZH)),
+                Map.of("type", "factory", "props", Map.of("heading", "关于正和", "image", file("advantage.png"), "text", ABOUT_ZH)),
                 Map.of("type", "faq", "props", Map.of("items", faqZh())),
                 Map.of("type", "blogTeaser", "props", Map.of("heading", "加油机采购说明")),
                 Map.of("type", "cta", "props", Map.of("heading", "需要 2–6 枪 220V/380V 整机或 3000L 微型站？", "cta", "联系 Cathy", "ctaTo", "/inquiry"))
@@ -568,7 +566,7 @@ public class DemoDataSeeder implements CommandLineRunner {
     }
 
     private void seedArticles(Tenant tenant, Site site) {
-        article(tenant, site, "choose-nozzle-count-fuel-dispenser", AURORA,
+        article(tenant, site, "choose-nozzle-count-fuel-dispenser", file("aurora.jpg"),
                 "How to Choose 1–6 Nozzle Fuel Dispensers", "加油机如何选 1–6 枪",
                 "Match Honesty compact pumps to Aurora multi-hose islands using flow rate and peak traffic.",
                 "按流量与高峰车流，在诚信紧凑机与极光多枪岛式机之间选型。",
@@ -578,7 +576,7 @@ public class DemoDataSeeder implements CommandLineRunner {
                 "<p>正和岛式机计量平台一致：5–50 或 5–80 L/min，精度 ±0.25%，汽柴油煤油，110/220/380V。</p>"
                         + "<p>矿山、车场用<strong>诚信 ZH-H</strong>（1–2 枪）。常规加油站用<strong>智能/精英</strong>（可加 GPRS 或 Bennett/Tatsuno/Tokheim）。4–8 枪、对外观要求高则选<strong>极光/辉煌</strong>。</p>"
                         + "<p>询盘请说明电压、枪数、油品，以及是否需要 GPRS 与 OEM Logo。</p>");
-        article(tenant, site, "mini-gas-station-3000l-6000l", PRESTIGE_V,
+        article(tenant, site, "mini-gas-station-3000l-6000l", file("prestige-v.jpg"),
                 "Mini Gas Stations 300L–6000L for Mines and Yards", "矿山与车场用 300–6000L 微型加油站",
                 "Prestige-V stands 1800–2100 mm tall; Prestige-H is the low horizontal pack. Both support OEM/ODM, ATG and GPRS.",
                 "尊享-V 高度 1800–2100 mm，尊享-H 为卧式。均可 OEM/ODM，可选液位与 GPRS。",
@@ -588,7 +586,7 @@ public class DemoDataSeeder implements CommandLineRunner {
                 "<p>尊享系列是罐+泵+表+自封枪的微型站，罐容 300 至 6000L。</p>"
                         + "<p>尊享-V 立式可站立加油；尊享-H 卧式约 1100 mm 高。介质汽柴油煤油，流量 5–60 L/min，精度 ±0.3%。电机从 DC12/24V 到 AC380V，可选太阳能。</p>"
                         + "<p>适合尚不需要完整岛式机的矿山、工地与出口市场。</p>");
-        article(tenant, site, "gprs-fuel-dispenser-remote-monitoring", INTELLIGENT,
+        article(tenant, site, "gprs-fuel-dispenser-remote-monitoring", file("intelligent.jpg"),
                 "Why Add GPRS to a Fuel Dispenser", "加油机为什么要加 GPRS",
                 "Remote monitoring on Intelligent, Aurora, Brilliance and Prestige series for station and fleet owners.",
                 "智能、极光、辉煌与尊享系列可加 GPRS，方便油站与车队远程看数。",
