@@ -63,7 +63,13 @@ spring:
     activate:
       on-profile: mysql
   datasource:
-    url: ${MYSQL_URL:jdbc:mysql://${MYSQL_HOST:127.0.0.1}:${MYSQL_PORT:3306}/${MYSQL_DB:tradehub}?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC}
+    url: ${MYSQL_URL:jdbc:mysql://${MYSQL_HOST:127.0.0.1}:${MYSQL_PORT:3306}/${MYSQL_DB:tradehub}?useUnicode=true&characterEncoding=utf8&connectionCollation=utf8mb4_unicode_ci&serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true}
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: ${MYSQL_USER:tradehub}
     password: ${MYSQL_PASSWORD:tradehub}
+    hikari:
+      maximum-pool-size: ${MYSQL_POOL_SIZE:5}
+      minimum-idle: 1
+      connection-timeout: 20000
+      idle-timeout: 300000
+      max-lifetime: 600000
