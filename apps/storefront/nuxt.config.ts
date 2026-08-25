@@ -24,12 +24,15 @@ export default defineNuxtConfig({
     public: {
       apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:8080',
       siteCode: process.env.NUXT_PUBLIC_SITE_CODE || 'fueltech',
-      siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+      siteUrl: process.env.NUXT_PUBLIC_SITE_URL || process.env.RENDER_EXTERNAL_URL || 'http://localhost:3000'
     }
   },
   nitro: {
+    preset: process.env.NITRO_PRESET || process.env.SERVER_PRESET || 'node-server',
     routeRules: {
-      '/api/**': { proxy: 'http://localhost:8080/api/**' }
+      '/api/**': {
+        proxy: `${(process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:8080').replace(/\/$/, '')}/api/**`
+      }
     }
   }
 })

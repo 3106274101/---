@@ -4,7 +4,11 @@
   "scripts": {
     "dev": "nuxt dev --port 3000",
     "build": "nuxt build",
-    "preview": "nuxt preview"
+    "preview": "nuxt preview",
+    "start": "node .output/server/index.mjs"
+  },
+  "engines": {
+    "node": ">=20"
   },
   "dependencies": {
     "@nuxtjs/i18n": "8.5.6",
