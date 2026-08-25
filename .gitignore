@@ -2,6 +2,8 @@
 services/tradehub-api/target/
 services/tradehub-api/data/
 services/tradehub-api/uploads/
+!services/tradehub-api/uploads/demo/
+!services/tradehub-api/uploads/demo/**
 *.class
 *.log
 .idea/

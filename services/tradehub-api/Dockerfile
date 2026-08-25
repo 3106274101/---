@@ -8,7 +8,7 @@ RUN mvn -q -DskipTests package
 FROM eclipse-temurin:17-jre
 WORKDIR /app
 COPY --from=build /app/target/tradehub-api-1.0.0.jar app.jar
-RUN mkdir -p /app/uploads
+COPY uploads/demo /app/uploads/demo
 ENV TRADEHUB_UPLOAD_DIR=/app/uploads
 EXPOSE 8080
 ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75.0"
