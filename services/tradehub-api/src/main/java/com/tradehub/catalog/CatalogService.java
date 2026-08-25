@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -32,9 +33,10 @@ public class CatalogService {
         List<Category> cats = categoryMapper.selectList(new LambdaQueryWrapper<Category>()
                 .eq(Category::getTenantId, tenantId)
                 .orderByAsc(Category::getSortOrder));
+        Map<Long, List<CategoryI18n>> i18nByCat = loadCategoryI18n(cats.stream().map(Category::getId).toList());
         List<Map<String, Object>> result = new ArrayList<>();
         for (Category cat : cats) {
-            result.add(categoryView(cat, locale));
+            result.add(categoryView(cat, locale, i18nByCat.getOrDefault(cat.getId(), List.of())));
         }
         return result;
     }
@@ -56,7 +58,8 @@ public class CatalogService {
             categoryMapper.updateById(cat);
         }
         upsertCategoryI18n(cat, locale, req);
-        return categoryView(cat, locale);
+        CategoryI18n saved = pickCategoryI18n(cat.getId(), locale);
+        return categoryView(cat, locale, saved == null ? List.of() : List.of(saved));
     }
 
     public PageResult<Map<String, Object>> listProducts(String locale, String keyword, String status, long page, long size) {
@@ -73,8 +76,10 @@ public class CatalogService {
         int to = (int) Math.min(all.size(), from + size);
         List<Map<String, Object>> slice = new ArrayList<>();
         if (from < to) {
-            for (Product p : all.subList(from, to)) {
-                slice.add(productView(p, locale, true));
+            List<Product> pageItems = all.subList(from, to);
+            Map<Long, List<ProductI18n>> i18nByProduct = loadProductI18n(pageItems.stream().map(Product::getId).toList());
+            for (Product p : pageItems) {
+                slice.add(productView(p, locale, true, i18nByProduct.getOrDefault(p.getId(), List.of())));
             }
         }
         return new PageResult<>(slice, total, page, size);
@@ -143,7 +148,13 @@ public class CatalogService {
     }
 
     public Map<String, Object> productView(Product product, String locale, boolean allLocales) {
-        ProductI18n i18n = pickProductI18n(product.getId(), locale);
+        List<ProductI18n> translations = productI18nMapper.selectList(new LambdaQueryWrapper<ProductI18n>()
+                .eq(ProductI18n::getProductId, product.getId()));
+        return productView(product, locale, allLocales, translations);
+    }
+
+    private Map<String, Object> productView(Product product, String locale, boolean allLocales, List<ProductI18n> translations) {
+        ProductI18n i18n = pick(translations, locale, ProductI18n::getLocale);
         Map<String, Object> map = new HashMap<>();
         map.put("id", product.getId());
         map.put("categoryId", product.getCategoryId());
@@ -165,11 +176,29 @@ public class CatalogService {
             map.put("locale", i18n.getLocale());
         }
         if (allLocales) {
-            List<ProductI18n> list = productI18nMapper.selectList(new LambdaQueryWrapper<ProductI18n>()
-                    .eq(ProductI18n::getProductId, product.getId()));
-            map.put("translations", list);
+            map.put("translations", translations);
         }
         return map;
+    }
+
+    private Map<Long, List<ProductI18n>> loadProductI18n(List<Long> productIds) {
+        if (productIds == null || productIds.isEmpty()) {
+            return Map.of();
+        }
+        return productI18nMapper.selectList(new LambdaQueryWrapper<ProductI18n>()
+                        .in(ProductI18n::getProductId, productIds))
+                .stream()
+                .collect(Collectors.groupingBy(ProductI18n::getProductId));
+    }
+
+    private Map<Long, List<CategoryI18n>> loadCategoryI18n(List<Long> categoryIds) {
+        if (categoryIds == null || categoryIds.isEmpty()) {
+            return Map.of();
+        }
+        return categoryI18nMapper.selectList(new LambdaQueryWrapper<CategoryI18n>()
+                        .in(CategoryI18n::getCategoryId, categoryIds))
+                .stream()
+                .collect(Collectors.groupingBy(CategoryI18n::getCategoryId));
     }
 
     public ProductI18n pickProductI18n(Long productId, String locale) {
@@ -191,8 +220,8 @@ public class CatalogService {
                 .orderByAsc(Product::getSortOrder));
     }
 
-    private Map<String, Object> categoryView(Category cat, String locale) {
-        CategoryI18n i18n = pickCategoryI18n(cat.getId(), locale);
+    private Map<String, Object> categoryView(Category cat, String locale, List<CategoryI18n> translations) {
+        CategoryI18n i18n = pick(translations, locale, CategoryI18n::getLocale);
         Map<String, Object> map = new HashMap<>();
         map.put("id", cat.getId());
         map.put("slug", cat.getSlug());
