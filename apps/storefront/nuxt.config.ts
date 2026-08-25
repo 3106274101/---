@@ -18,7 +18,12 @@ export default defineNuxtConfig({
     ],
     defaultLocale: 'en',
     strategy: 'prefix',
-    vueI18n: './i18n.config.ts'
+    vueI18n: './i18n.config.ts',
+    // 外贸站默认英文。打开浏览器语言检测会把国内访客从 /en 甩到 /zh，客户端再加载失败就会变 500。
+    detectBrowserLanguage: false
+  },
+  experimental: {
+    appManifest: false
   },
   runtimeConfig: {
     public: {
@@ -28,7 +33,8 @@ export default defineNuxtConfig({
     }
   },
   nitro: {
-    preset: process.env.NITRO_PRESET || process.env.SERVER_PRESET || 'node-server',
+    preset: 'node-server',
+    serveStatic: true,
     routeRules: {
       '/api/**': {
         proxy: `${(process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:8080').replace(/\/$/, '')}/api/**`

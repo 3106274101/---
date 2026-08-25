@@ -7,6 +7,23 @@ export function useStoreApi() {
     return String(route.query.site || config.public.siteCode)
   }
 
+  function rewriteAssets<T>(data: T): T {
+    const origin = String(config.public.apiBase || '').replace(/\/$/, '')
+    if (!origin) return data
+    if (typeof data === 'string') {
+      return data.replace(/https?:\/\/localhost:8080/g, origin) as T
+    }
+    if (Array.isArray(data)) {
+      return data.map((item) => rewriteAssets(item)) as T
+    }
+    if (data && typeof data === 'object') {
+      for (const key of Object.keys(data as object)) {
+        ;(data as Record<string, unknown>)[key] = rewriteAssets((data as Record<string, unknown>)[key])
+      }
+    }
+    return data
+  }
+
   async function get<T = any>(path: string): Promise<T> {
     const res = await $fetch<any>(`${config.public.apiBase}/api/store${path}`, {
       headers: {
@@ -15,9 +32,9 @@ export function useStoreApi() {
       }
     })
     if (res && typeof res === 'object' && 'data' in res) {
-      return res.data as T
+      return rewriteAssets(res.data as T)
     }
-    return res as T
+    return rewriteAssets(res as T)
   }
 
   async function post<T = any>(path: string, body: any): Promise<T> {
@@ -29,7 +46,7 @@ export function useStoreApi() {
         'X-Locale': locale.value
       }
     })
-    return (res?.data ?? res) as T
+    return rewriteAssets((res?.data ?? res) as T)
   }
 
   return { get, post, config, siteCode }
