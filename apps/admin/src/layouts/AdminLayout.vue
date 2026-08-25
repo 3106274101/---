@@ -70,6 +70,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Brush, ChatDotSquare, Document, Goods, Grid, Monitor, Odometer, OfficeBuilding, Picture, Search } from '@element-plus/icons-vue'
 import http from '../api/http'
+import { storePreview } from '../config'
 import { useAuthStore } from '../stores/auth'
 
 const auth = useAuthStore()
@@ -123,6 +124,6 @@ function logout() {
 function openStore() {
   const current = sites.value.find((s: any) => String(s.id) === siteId.value)
   const code = current?.code || 'fueltech'
-  window.open('http://localhost:3000/en?site=' + encodeURIComponent(code), '_blank')
+  window.open(storePreview('/en', code), '_blank')
 }
 </script>

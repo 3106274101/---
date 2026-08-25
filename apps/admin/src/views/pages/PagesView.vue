@@ -32,6 +32,7 @@
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import http from '../../api/http'
+import { storePreview } from '../../config'
 
 const list = ref<any[]>([])
 const router = useRouter()
@@ -58,8 +59,7 @@ async function create() {
 function preview(row: any) {
   const path = row.slug === 'home' ? '/en' : `/en/${row.slug}`
   const code = localStorage.getItem('th_site_code') || ''
-  const q = code ? ('?site=' + encodeURIComponent(code)) : ''
-  window.open('http://localhost:3000' + path + q, '_blank')
+  window.open(storePreview(path, code), '_blank')
 }
 </script>
 

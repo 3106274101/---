@@ -143,6 +143,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import http from '../../api/http'
+import { storePreview } from '../../config'
 import { BLOCK_CATALOG, createBlock, type BlockType } from './blockCatalog'
 import CanvasBlock from './CanvasBlock.vue'
 
@@ -229,7 +230,8 @@ async function save() {
   }
 }
 function previewSite() {
-  window.open('http://localhost:3000/en', '_blank')
+  const code = localStorage.getItem('th_site_code') || ''
+  window.open(storePreview('/en', code), '_blank')
 }
 </script>
 

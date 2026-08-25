@@ -11,8 +11,8 @@
         <div class="panel-h">robots.txt</div>
         <pre class="code-box">{{ robots || '（暂无）' }}</pre>
         <div class="panel-pad seo-links">
-          <a href="http://localhost:3000/robots.txt" target="_blank">打开 robots.txt</a>
-          <a href="http://localhost:3000/sitemap.xml" target="_blank">打开 sitemap.xml</a>
+          <a :href="storePreview('/robots.txt')" target="_blank">打开 robots.txt</a>
+          <a :href="storePreview('/sitemap.xml')" target="_blank">打开 sitemap.xml</a>
         </div>
       </div>
       <div class="panel">
@@ -37,6 +37,7 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 import http from '../../api/http'
+import { storePreview } from '../../config'
 
 const robots = ref('')
 const redirects = ref<any[]>([])

@@ -1,7 +1,8 @@
 import axios from 'axios'
+import { apiBase, rewriteAssetUrls } from '../config'
 
 const http = axios.create({
-  baseURL: '/api'
+  baseURL: apiBase
 })
 
 http.interceptors.request.use((config) => {
@@ -22,9 +23,9 @@ http.interceptors.request.use((config) => {
 })
 
 http.interceptors.response.use(
-  (res) => res.data,
+  (res) => rewriteAssetUrls(res.data),
   (err) => {
-    if (err.response?.status === 401 && !location.hash.includes('/login')) {
+    if (err.response?.status === 401 && !location.pathname.startsWith('/login')) {
       localStorage.removeItem('th_token')
       location.href = '/login'
     }

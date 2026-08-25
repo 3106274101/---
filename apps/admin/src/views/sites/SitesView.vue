@@ -82,6 +82,7 @@ import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import http from '../../api/http'
+import { storePreview } from '../../config'
 
 const list = ref<any[]>([])
 const templates = ref<any[]>([])
@@ -112,7 +113,7 @@ function goPages(row: any) {
   router.push('/pages')
 }
 function preview(row: any) {
-  window.open('http://localhost:3000/en?site=' + encodeURIComponent(row.code), '_blank')
+  window.open(storePreview('/en', row.code), '_blank')
 }
 function templateName(theme?: string) {
   const id = !theme || theme === 'industrial-fuel' ? 'industrial' : theme
