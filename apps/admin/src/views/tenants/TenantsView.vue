@@ -33,7 +33,7 @@
     <el-dialog v-model="visible" :title="form.id ? '编辑租户' : '新建租户'" width="520px">
       <el-form :model="form" label-width="108px">
         <el-form-item label="公司名称" required>
-          <el-input v-model="form.name" placeholder="如 FuelTech Machinery Co., Ltd." />
+          <el-input v-model="form.name" placeholder="如 Huixian Zhenghe Machinery Equipment Co., Ltd." />
         </el-form-item>
         <el-form-item label="租户编码" required>
           <el-input v-model="form.code" placeholder="英文小写，如 fueltech" :disabled="!!form.id" />

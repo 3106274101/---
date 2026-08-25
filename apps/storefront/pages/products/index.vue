@@ -36,8 +36,8 @@ const { data } = await useAsyncData(
 const cats = computed(() => catData.value || [])
 const products = computed(() => data.value || [])
 usePageSeo({
-  title: 'Fuel Dispensers | FuelTech',
-  description: 'Browse fuel dispensers, mobile skid units, automatic nozzles and flow meters. OEM available.',
+  title: 'Fuel Dispensers | ZhengHe Machinery',
+  description: 'Honesty, Intelligent, Elite, Aurora island dispensers, Prestige mini stations and 11A nozzles from Huixian Zhenghe, Henan.',
   path: '/products'
 })
 function goCat(slug?: string) {

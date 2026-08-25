@@ -20,5 +20,5 @@
 const { get } = useStoreApi()
 const { data } = await useAsyncData('ctx-contact', () => get('/context'))
 const brand = computed(() => data.value?.brand || {})
-usePageSeo({ title: 'Contact | FuelTech', description: 'Contact FuelTech export team for fuel dispenser quotations.', path: '/contact' })
+usePageSeo({ title: 'Contact | ZhengHe Machinery', description: 'Cathy@machineryzh.com · +86 18567535165 · Xinxiang, Henan.', path: '/contact' })
 </script>

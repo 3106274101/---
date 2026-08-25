@@ -20,7 +20,7 @@
             <div class="preview-hero-img" :style="{ backgroundImage: `url(${brand.heroImage})` }" />
             <div class="preview-hero-copy">
               <h3>{{ brand.tagline }}</h3>
-              <small>OEM factory · CE / ISO</small>
+              <small>17 years · Xinxiang, Henan</small>
               <i>Get Quote</i>
             </div>
           </div>
@@ -30,7 +30,7 @@
       <el-card header="品牌与联系">
         <el-form label-position="top">
           <el-form-item label="站点名称"><el-input v-model="site.name" /></el-form-item>
-          <el-form-item label="Logo 文字"><el-input v-model="brand.logoText" placeholder="FuelTech" /></el-form-item>
+          <el-form-item label="Logo 文字"><el-input v-model="brand.logoText" placeholder="ZhengHe" /></el-form-item>
           <el-form-item label="口号 / Tagline"><el-input v-model="brand.tagline" /></el-form-item>
           <div class="color-row">
             <el-form-item label="主色">
@@ -63,10 +63,10 @@ import http from '../../api/http'
 const site = ref<any>(null)
 const saving = ref(false)
 const brand = reactive<any>({
-  logoText: 'FuelTech',
+  logoText: 'ZhengHe',
   tagline: '',
   primaryColor: '#0b1f3a',
-  accentColor: '#e85d04',
+  accentColor: '#c2410c',
   email: '',
   phone: '',
   whatsapp: '',
@@ -80,8 +80,14 @@ const tokenStyle = computed(() => ({
   '--p': brand.primaryColor || '#0b1f3a',
   '--a': brand.accentColor || '#e85d04'
 }))
-const logoLeft = computed(() => String(brand.logoText || 'FuelTech').slice(0, 4))
-const logoRight = computed(() => String(brand.logoText || 'FuelTech').slice(4))
+const logoLeft = computed(() => {
+  const s = String(brand.logoText || 'ZhengHe')
+  return s.slice(0, Math.max(1, s.length - 2))
+})
+const logoRight = computed(() => {
+  const s = String(brand.logoText || 'ZhengHe')
+  return s.slice(Math.max(1, s.length - 2))
+})
 
 onMounted(async () => {
   const id = localStorage.getItem('th_site')

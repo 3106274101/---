@@ -50,7 +50,7 @@
       <div class="wrap">
         <div class="footer-grid">
           <div>
-            <h4>{{ brand.logoText || 'FuelTech' }}</h4>
+            <h4>{{ brand.logoText || 'ZhengHe' }}</h4>
             <p>{{ brand.tagline }}</p>
             <p>{{ brand.address }}</p>
             <p>{{ brand.email }}<br>{{ brand.phone }}</p>
@@ -60,7 +60,7 @@
             <ul>
               <li><NuxtLink :to="localePath('/products')">{{ $t('allModels') }}</NuxtLink></li>
               <li><NuxtLink :to="localePath('/products') + '?category=fuel-dispensers'">Fuel dispensers</NuxtLink></li>
-              <li><NuxtLink :to="localePath('/products') + '?category=mobile-skid'">Mobile / skid</NuxtLink></li>
+              <li><NuxtLink :to="localePath('/products') + '?category=mini-stations'">Mini gas stations</NuxtLink></li>
             </ul>
           </div>
           <div>
@@ -82,7 +82,7 @@
           </div>
         </div>
         <div class="footer-copy">
-          <span>© {{ new Date().getFullYear() }} {{ brand.logoText || 'FuelTech' }}</span>
+          <span>© {{ new Date().getFullYear() }} {{ brand.logoText || 'ZhengHe' }} Machinery</span>
           <NuxtLink :to="localePath('/privacy')">{{ $t('footer.privacy') }}</NuxtLink>
           <NuxtLink :to="localePath('/cookies')">{{ $t('footer.cookies') }}</NuxtLink>
         </div>
@@ -101,9 +101,10 @@ const { data } = await useAsyncData('ctx', () => get('/context'))
 const brand = computed(() => data.value?.brand || {})
 const open = ref(false)
 const q = ref('')
-const logoText = computed(() => String(brand.value.logoText || 'FuelTech'))
-const logoLeft = computed(() => logoText.value.slice(0, Math.max(1, logoText.value.length - 4)))
-const logoRight = computed(() => logoText.value.slice(Math.max(1, logoText.value.length - 4)))
+const logoText = computed(() => String(brand.value.logoText || 'ZhengHe'))
+const splitAt = computed(() => Math.max(1, logoText.value.length - 2))
+const logoLeft = computed(() => logoText.value.slice(0, splitAt.value))
+const logoRight = computed(() => logoText.value.slice(splitAt.value))
 const waLink = computed(() => {
   const raw = String(brand.value.whatsapp || '').replace(/\D/g, '')
   return raw ? `https://wa.me/${raw}` : ''

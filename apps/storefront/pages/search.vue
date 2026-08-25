@@ -32,7 +32,7 @@ const { data } = await useAsyncData(
 )
 const hits = computed(() => data.value || [])
 useHead({ meta: [{ name: 'robots', content: 'noindex,follow' }] })
-usePageSeo({ title: 'Search | FuelTech', description: 'Search products and articles.', path: '/search' })
+usePageSeo({ title: 'Search | ZhengHe Machinery', description: 'Search ZhengHe fuel dispensers and articles.', path: '/search' })
 function go() {
   q.value = String(q.value || '')
   navigateTo({ path: route.path, query: { q: q.value } })

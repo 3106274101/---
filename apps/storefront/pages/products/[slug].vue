@@ -80,7 +80,7 @@ usePageSeo({
     description: p.value.summary,
     image: p.value.coverUrl,
     sku: p.value.model,
-    brand: { '@type': 'Brand', name: 'FuelTech' },
+    brand: { '@type': 'Brand', name: 'ZhengHe' },
     additionalProperty: extra,
     offers: {
       '@type': 'Offer',

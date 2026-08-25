@@ -79,12 +79,13 @@ const heroStyle = computed(() => ({
 </script>
 
 <style scoped>
-.cv-hero { min-height: 220px; color: #fff; background: #0b1f3a center/cover no-repeat; display: flex; align-items: center; }
-.cv-hero.split { display: grid; grid-template-columns: 1fr 1fr; color: #0b1f3a; background: #fff; }
-.cv-hero-img { min-height: 220px; background: #ccc center/cover no-repeat; }
+.cv-hero { min-height: 220px; color: #fff; background: #0b1f3a; display: grid; grid-template-columns: 1fr 1fr; overflow: hidden; }
+.cv-hero.split { color: #fff; }
+.cv-hero-img { min-height: 220px; background: #eef2f6 center/contain no-repeat; }
 .cv-hero-inner { padding: 32px; width: 100%; }
-.cv-hero.overlay .cv-hero-inner { background: linear-gradient(90deg, rgba(11,31,58,.82), rgba(11,31,58,.2)); color: #fff; }
-.cv-hero.split .cv-hero-inner { background: #fff; }
+.cv-hero.overlay { display: flex; align-items: center; grid-template-columns: 1fr; background: #0b1f3a center/cover no-repeat; }
+.cv-hero.overlay .cv-hero-inner { background: none; color: #fff; }
+.cv-hero.split .cv-hero-inner { background: #0b1f3a; color: #fff; }
 .cv-hero h2 { margin: 0 0 8px; font-size: 26px; }
 .cv-btn { display: inline-block; background: #e85d04; color: #fff; padding: 8px 12px; font-size: 13px; }
 .cv-trust { display: grid; grid-template-columns: repeat(4, 1fr); text-align: center; padding: 12px 0; font-weight: 600; color: #0b1f3a; border-bottom: 1px solid #eee; }

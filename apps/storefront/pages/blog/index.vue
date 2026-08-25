@@ -14,5 +14,5 @@ const localePath = useLocalePath()
 const { get } = useStoreApi()
 const { data } = await useAsyncData('blog', () => get('/articles'))
 const articles = computed(() => data.value || [])
-usePageSeo({ title: 'Fuel Dispenser Insights | FuelTech', description: 'Buying guides, OEM checklists and maintenance notes.', path: '/blog' })
+usePageSeo({ title: 'Fuel Dispenser Guides | ZhengHe Machinery', description: 'Nozzle count, mini stations and GPRS notes from ZhengHe.', path: '/blog' })
 </script>

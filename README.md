@@ -54,7 +54,7 @@ npm run dev
 
 ## 演示数据
 
-种子脚本会写入 FuelTech 加油机样例：T80 / T120 / M50 等商品、首页区块、博客、一条来自阿联酋的询盘。
+种子脚本会写入辉县正和机械（参考 [machineryzh.com](http://www.machineryzh.com/)）：Honesty / Intelligent / Elite / Aurora / Prestige 等系列、首页区块、加油机相关博客、一条巴基斯坦询盘。联系方式为 Cathy@machineryzh.com 与 +86 18567535165。
 
 改完种子后如需重灌数据，删除 `services/tradehub-api/data/` 后重启后端。
 

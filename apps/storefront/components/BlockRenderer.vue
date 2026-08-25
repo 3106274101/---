@@ -1,9 +1,11 @@
 <template>
   <div>
     <section v-for="(block, i) in blocks" :key="i">
-      <div v-if="block.type === 'hero'" class="hero" :class="heroLayout(block)" :style="heroStyle(block)">
-        <div class="hero-img" :style="{ backgroundImage: `url(${block.props.image})` }" />
-        <div class="wrap copy">
+      <div v-if="block.type === 'hero'" class="hero" :class="heroLayout(block)">
+        <div class="hero-visual">
+          <img :src="block.props.image" :alt="block.props.heading" />
+        </div>
+        <div class="hero-copy wrap">
           <h1>{{ block.props.heading }}</h1>
           <p>{{ block.props.subtitle }}</p>
           <NuxtLink :to="localePath(block.props.ctaTo || '/inquiry')" class="btn">{{ block.props.cta || $t('cta') }}</NuxtLink>
@@ -13,7 +15,7 @@
       <div v-else-if="block.type === 'trustBar'" class="trust">
         <div v-for="item in block.props.items" :key="item">
           {{ item }}
-          <small>{{ trustHint(item) }}</small>
+          <small v-if="trustHint(item)">{{ trustHint(item) }}</small>
         </div>
       </div>
 
@@ -142,17 +144,16 @@ const articles = computed(() => props.articles || [])
 function heroLayout(block: any) {
   return block.props?.layout || 'split'
 }
-function heroStyle(block: any) {
-  if (heroLayout(block) !== 'overlay') return undefined
-  return { backgroundImage: `url(${block.props.image})` }
-}
 function trustHint(item: string) {
   const text = String(item).toLowerCase()
   if (text.includes('ce')) return 'European standards'
   if (text.includes('iso')) return 'Quality system certified'
-  if (text.includes('countr')) return 'Trusted worldwide'
-  if (text.includes('year')) return 'Focused on dispensers'
-  return 'Industrial export'
+  if (text.includes('countr') || text.includes('全球')) return 'Export markets'
+  if (text.includes('year') || text.includes('年')) return 'Petroleum equipment'
+  if (text.includes('nozzle') || text.includes('枪')) return 'Flexible layout'
+  if (text.includes('gprs')) return 'Remote monitoring'
+  if (text.includes('110') || text.includes('380') || text.includes('volt')) return 'Station voltage'
+  return ''
 }
 function factoryTiles(block: any) {
   if (Array.isArray(block.props?.tiles) && block.props.tiles.length) return block.props.tiles

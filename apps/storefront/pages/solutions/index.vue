@@ -9,7 +9,7 @@
 const { get } = useStoreApi()
 const { data: page } = await useAsyncData('solutions', () => get('/pages/solutions'))
 usePageSeo({
-  title: page.value?.seoTitle || 'Fueling Solutions | FuelTech',
+  title: page.value?.seoTitle || 'Fueling Solutions | ZhengHe Machinery',
   description: page.value?.seoDescription || 'Petrol station, fleet and marine fuel dispenser solutions.',
   path: '/solutions'
 })

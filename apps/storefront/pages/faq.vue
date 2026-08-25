@@ -4,5 +4,5 @@
 <script setup lang="ts">
 const { get } = useStoreApi()
 const { data: page } = await useAsyncData('faq', () => get('/pages/faq'))
-usePageSeo({ title: page.value?.seoTitle || 'FAQ | FuelTech', description: page.value?.seoDescription, path: '/faq' })
+usePageSeo({ title: page.value?.seoTitle || 'FAQ | ZhengHe Machinery', description: page.value?.seoDescription, path: '/faq' })
 </script>

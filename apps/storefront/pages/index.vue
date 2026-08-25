@@ -11,7 +11,7 @@ const brand = home.value?.brand || {}
 const seo = home.value?.seo || {}
 const faqs = (home.value?.page?.blocks || []).find((b: any) => b.type === 'faq')?.props?.items || []
 usePageSeo({
-  title: seo.title || 'Fuel Dispenser Manufacturer | FuelTech',
+  title: seo.title || 'Fuel Dispenser Manufacturer | ZhengHe Machinery',
   description: seo.description,
   path: '/',
   image: seo.ogImage || brand.heroImage,
@@ -19,7 +19,7 @@ usePageSeo({
     {
       '@context': 'https://schema.org',
       '@type': 'Organization',
-      name: brand.logoText || 'FuelTech',
+      name: brand.logoText || 'ZhengHe',
       url: config.public.siteUrl,
       email: brand.email,
       telephone: brand.phone,
@@ -28,7 +28,7 @@ usePageSeo({
     {
       '@context': 'https://schema.org',
       '@type': 'WebSite',
-      name: brand.logoText || 'FuelTech',
+      name: brand.logoText || 'ZhengHe',
       url: config.public.siteUrl,
       potentialAction: {
         '@type': 'SearchAction',

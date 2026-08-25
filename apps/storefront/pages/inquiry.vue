@@ -15,5 +15,5 @@
   </div>
 </template>
 <script setup lang="ts">
-usePageSeo({ title: 'Get a Quote | FuelTech', description: 'Send an RFQ for fuel dispensers and accessories.', path: '/inquiry' })
+usePageSeo({ title: 'Get a Quote | ZhengHe Machinery', description: 'RFQ for ZhengHe fuel dispensers, mini stations and nozzles.', path: '/inquiry' })
 </script>

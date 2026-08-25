@@ -5,5 +5,5 @@
   </div>
 </template>
 <script setup lang="ts">
-usePageSeo({ title: 'Cookie Policy | FuelTech', description: 'Cookie usage on FuelTech websites.', path: '/cookies' })
+usePageSeo({ title: 'Cookie Policy | ZhengHe Machinery', description: 'Cookie usage on ZhengHe websites.', path: '/cookies' })
 </script>
