@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: ${PORT:8080}
 
 spring:
   application:
@@ -32,15 +32,15 @@ mybatis-plus:
 
 tradehub:
   jwt:
-    secret: TradeHubLocalDevSecretKeyMustBeAtLeast256BitsLong!!
+    secret: ${TRADEHUB_JWT_SECRET:TradeHubLocalDevSecretKeyMustBeAtLeast256BitsLong!!}
     expire-hours: 72
   upload:
-    dir: ${user.dir}/uploads
-    public-base: http://localhost:8080/files
+    dir: ${TRADEHUB_UPLOAD_DIR:${user.dir}/uploads}
+    public-base: ${TRADEHUB_UPLOAD_PUBLIC_BASE:${RENDER_EXTERNAL_URL:http://localhost:8080}/files}
   cors:
-    origins: http://localhost:5173,http://localhost:3000
+    origins: ${TRADEHUB_CORS_ORIGINS:http://localhost:5173,http://localhost:3000}
   store:
-    default-site-code: fueltech
+    default-site-code: ${TRADEHUB_DEFAULT_SITE_CODE:fueltech}
 
 ---
 spring:
@@ -63,7 +63,7 @@ spring:
     activate:
       on-profile: mysql
   datasource:
-    url: jdbc:mysql://${MYSQL_HOST:127.0.0.1}:3306/${MYSQL_DB:tradehub}?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
+    url: ${MYSQL_URL:jdbc:mysql://${MYSQL_HOST:127.0.0.1}:${MYSQL_PORT:3306}/${MYSQL_DB:tradehub}?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC}
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: ${MYSQL_USER:tradehub}
     password: ${MYSQL_PASSWORD:tradehub}
