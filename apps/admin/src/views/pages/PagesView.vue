@@ -57,7 +57,9 @@ async function create() {
 }
 function preview(row: any) {
   const path = row.slug === 'home' ? '/en' : `/en/${row.slug}`
-  window.open('http://localhost:3000' + path, '_blank')
+  const code = localStorage.getItem('th_site_code') || ''
+  const q = code ? ('?site=' + encodeURIComponent(code)) : ''
+  window.open('http://localhost:3000' + path + q, '_blank')
 }
 </script>
 

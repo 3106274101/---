@@ -88,6 +88,8 @@ onMounted(async () => {
     siteId.value = String(sites.value[0].id)
     localStorage.setItem('th_site', siteId.value)
   }
+  const current = sites.value.find((s: any) => String(s.id) === siteId.value)
+  if (current?.code) localStorage.setItem('th_site_code', current.code)
   try {
     const dash: any = await http.get('/admin/dashboard')
     newInquiries.value = dash.data?.newInquiries || 0
@@ -106,6 +108,8 @@ function initials(name?: string) {
 }
 function onSite(val: string) {
   localStorage.setItem('th_site', val)
+  const current = sites.value.find((s: any) => String(s.id) === String(val))
+  if (current?.code) localStorage.setItem('th_site_code', current.code)
 }
 function onLocale(val: string) {
   if (locale.value === val) return
@@ -117,6 +121,8 @@ function logout() {
   router.push('/login')
 }
 function openStore() {
-  window.open('http://localhost:3000/en', '_blank')
+  const current = sites.value.find((s: any) => String(s.id) === siteId.value)
+  const code = current?.code || 'fueltech'
+  window.open('http://localhost:3000/en?site=' + encodeURIComponent(code), '_blank')
 }
 </script>

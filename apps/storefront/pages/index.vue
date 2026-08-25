@@ -5,8 +5,8 @@
 </template>
 
 <script setup lang="ts">
-const { get, config } = useStoreApi()
-const { data: home } = await useAsyncData('home', () => get('/home'))
+const { get, config, siteCode } = useStoreApi()
+const { data: home } = await useAsyncData('home-' + siteCode(), () => get('/home'))
 const brand = home.value?.brand || {}
 const seo = home.value?.seo || {}
 const faqs = (home.value?.page?.blocks || []).find((b: any) => b.type === 'faq')?.props?.items || []

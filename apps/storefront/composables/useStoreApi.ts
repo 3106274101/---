@@ -1,11 +1,16 @@
 export function useStoreApi() {
   const config = useRuntimeConfig()
   const { locale } = useI18n()
+  const route = useRoute()
+
+  function siteCode() {
+    return String(route.query.site || config.public.siteCode)
+  }
 
   async function get<T = any>(path: string): Promise<T> {
     const res = await $fetch<any>(`${config.public.apiBase}/api/store${path}`, {
       headers: {
-        'X-Site-Code': String(config.public.siteCode),
+        'X-Site-Code': siteCode(),
         'X-Locale': locale.value
       }
     })
@@ -20,14 +25,14 @@ export function useStoreApi() {
       method: 'POST',
       body,
       headers: {
-        'X-Site-Code': String(config.public.siteCode),
+        'X-Site-Code': siteCode(),
         'X-Locale': locale.value
       }
     })
     return (res?.data ?? res) as T
   }
 
-  return { get, post, config }
+  return { get, post, config, siteCode }
 }
 
 export function usePageSeo(opts: {

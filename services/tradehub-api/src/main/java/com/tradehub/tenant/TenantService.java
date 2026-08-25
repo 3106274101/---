@@ -7,6 +7,8 @@ import com.tradehub.common.exception.BizException;
 import com.tradehub.common.tenant.TenantContext;
 import com.tradehub.config.SecurityConfig;
 import com.tradehub.security.LoginUser;
+import com.tradehub.theme.SiteTemplateCatalog;
+import com.tradehub.theme.SiteTemplateService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -21,6 +23,7 @@ public class TenantService {
     private final TenantMapper tenantMapper;
     private final SiteMapper siteMapper;
     private final DomainMapper domainMapper;
+    private final SiteTemplateService siteTemplateService;
 
     public List<Tenant> listTenants() {
         requireSuper();
@@ -87,10 +90,12 @@ public class TenantService {
     public Map<String, Object> saveSitePayload(Map<String, Object> body) {
         Site site;
         Object idRaw = body.get("id");
-        if (idRaw == null) {
+        boolean creating = idRaw == null;
+        if (creating) {
             site = new Site();
             site.setTenantId(workingTenantId());
-            site.setTheme("industrial-fuel");
+            site.setTheme(SiteTemplateCatalog.normalize(
+                    body.get("theme") != null ? body.get("theme").toString() : "industrial"));
             site.setDefaultLocale("en");
             site.setLocales("en,zh");
             site.setStatus("building");
@@ -104,7 +109,7 @@ public class TenantService {
             site.setCode(body.get("code").toString());
         }
         if (body.get("theme") != null) {
-            site.setTheme(body.get("theme").toString());
+            site.setTheme(SiteTemplateCatalog.normalize(body.get("theme").toString()));
         }
         if (body.get("status") != null) {
             site.setStatus(body.get("status").toString());
@@ -123,7 +128,12 @@ public class TenantService {
         if (body.get("seo") instanceof Map<?, ?> seo) {
             site.setSeoJson(Jsons.toJson(seo));
         }
-        return siteView(saveSite(site));
+        Site saved = saveSite(site);
+        if (creating) {
+            String templateId = body.get("template") != null ? body.get("template").toString() : saved.getTheme();
+            siteTemplateService.provision(saved, templateId);
+        }
+        return siteView(saved);
     }
 
     public Site getSite(Long id) {
@@ -151,6 +161,12 @@ public class TenantService {
     }
 
     public Site resolveByHostOrCode(String host, String code, String fallbackCode) {
+        if (StringUtils.hasText(code)) {
+            Site byCode = siteMapper.selectOne(new LambdaQueryWrapper<Site>().eq(Site::getCode, code).last("limit 1"));
+            if (byCode != null) {
+                return byCode;
+            }
+        }
         if (StringUtils.hasText(host)) {
             String hostname = host.split(":")[0];
             Domain domain = domainMapper.selectOne(new LambdaQueryWrapper<Domain>().eq(Domain::getHost, hostname));
@@ -158,7 +174,7 @@ public class TenantService {
                 return siteMapper.selectById(domain.getSiteId());
             }
         }
-        String use = StringUtils.hasText(code) ? code : fallbackCode;
+        String use = StringUtils.hasText(fallbackCode) ? fallbackCode : code;
         return siteMapper.selectOne(new LambdaQueryWrapper<Site>().eq(Site::getCode, use).last("limit 1"));
     }
 

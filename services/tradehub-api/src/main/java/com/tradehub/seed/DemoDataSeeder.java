@@ -303,7 +303,7 @@ public class DemoDataSeeder implements CommandLineRunner {
         site.setName("ZhengHe Machinery");
         site.setDefaultLocale("en");
         site.setLocales("en,zh");
-        site.setTheme("industrial-fuel");
+        site.setTheme("industrial");
         site.setStatus("live");
         site.setBrandJson(Jsons.toJson(Map.ofEntries(
                 Map.entry("logoText", "ZhengHe"),

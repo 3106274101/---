@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="site-root" :data-theme="theme">
     <div class="topbar">
       <div class="wrap topbar-inner">
         <span>{{ brand.email }} · {{ brand.phone }}</span>
@@ -96,9 +96,13 @@
 const { locale } = useI18n()
 const switchLocalePath = useSwitchLocalePath()
 const localePath = useLocalePath()
-const { get } = useStoreApi()
-const { data } = await useAsyncData('ctx', () => get('/context'))
+const { get, siteCode } = useStoreApi()
+const { data } = await useAsyncData('ctx-' + siteCode(), () => get('/context'))
 const brand = computed(() => data.value?.brand || {})
+const theme = computed(() => {
+  const raw = String(data.value?.site?.theme || 'industrial')
+  return raw === 'industrial-fuel' ? 'industrial' : raw
+})
 const open = ref(false)
 const q = ref('')
 const logoText = computed(() => String(brand.value.logoText || 'ZhengHe'))
@@ -111,8 +115,9 @@ const waLink = computed(() => {
 })
 
 useHead({
+  htmlAttrs: { 'data-theme': theme.value },
   style: [{
-    innerHTML: `:root{--navy:${brand.value.primaryColor || '#0b1f3a'};--navy-2:${brand.value.primaryColor || '#0b1f3a'};--cta:${brand.value.accentColor || '#e85d04'};}`
+    innerHTML: `:root{--navy:${brand.value.primaryColor || '#0b1f3a'};--navy-2:${brand.value.primaryColor || '#0b1f3a'};--cta:${brand.value.accentColor || '#e85d04'};--cta-2:${brand.value.accentColor || '#c44d00'};--radius:${brand.value.radius || '4px'};}`
   }]
 })
 
