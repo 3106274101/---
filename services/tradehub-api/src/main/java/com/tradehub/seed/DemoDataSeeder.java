@@ -305,19 +305,32 @@ public class DemoDataSeeder implements CommandLineRunner {
         site.setLocales("en,zh");
         site.setTheme("industrial");
         site.setStatus("live");
-        site.setBrandJson(Jsons.toJson(Map.ofEntries(
-                Map.entry("logoText", "ZhengHe"),
-                Map.entry("tagline", "Fuel dispensers, mining units, LPG dispensers and station equipment"),
-                Map.entry("primaryColor", "#0b1f3a"),
-                Map.entry("accentColor", "#c2410c"),
-                Map.entry("email", "Cathy@machineryzh.com"),
-                Map.entry("phone", "+86 18567535165"),
-                Map.entry("whatsapp", "+8618567535165"),
-                Map.entry("address", "50 Meters West Of Hanying Village, Zhaogu Township, Xinxiang City, Henan Province, China"),
-                Map.entry("founded", "2009"),
-                Map.entry("countries", "Global"),
-                Map.entry("heroImage", file("about.jpg"))
-        )));
+        Map<String, Object> brand = new java.util.LinkedHashMap<>();
+        brand.put("logoText", "ZhengHe");
+        brand.put("tagline", "Fuel dispensers, mining units, LPG dispensers and station equipment");
+        brand.put("primaryColor", "#0b1f3a");
+        brand.put("accentColor", "#c2410c");
+        brand.put("email", "Cathy@machineryzh.com");
+        brand.put("phone", "+86 18567535165");
+        brand.put("whatsapp", "+8618567535165");
+        brand.put("address", "50 Meters West Of Hanying Village, Zhaogu Township, Xinxiang City, Henan Province, China");
+        brand.put("founded", "2009");
+        brand.put("countries", "Global");
+        brand.put("heroImage", file("about.jpg"));
+        brand.put("trustLine", "CE / ISO · 80+ countries · Est. 2009");
+        brand.put("catalogTitle", "Fuel dispensers & station equipment");
+        brand.put("catalogLead", "Honesty to Brilliance island dispensers, Prestige mini stations and 11A nozzles. OEM factory in Xinxiang, Henan.");
+        brand.put("inquiryLead", "Tell us voltage, nozzle count, gasoline/diesel and destination port.");
+        brand.put("stickyHint", "Need a quote for fuel dispensers or mini stations?");
+        brand.put("footerNote", "Machinery");
+        brand.put("inquiryHints", List.of("Voltage: 110V / 220V / 380V", "Hose count and fuel types", "Destination port and OEM panel"));
+        brand.put("inquiryFields", List.of(
+                Map.of("key", "voltage", "label", "Voltage", "labelZh", "电压", "type", "select", "options", List.of("110V", "220V", "380V")),
+                Map.of("key", "hoses", "label", "Hose / nozzle count", "labelZh", "枪数", "type", "text", "placeholder", "e.g. 2 or 4"),
+                Map.of("key", "port", "label", "Destination port", "labelZh", "目的港", "type", "text", "placeholder", "e.g. Karachi")
+        ));
+        brand.put("navShow", Map.of("products", true, "solutions", true, "factory", true, "about", true, "blog", true, "contact", true));
+        site.setBrandJson(Jsons.toJson(brand));
         site.setSeoJson(Jsons.toJson(Map.of(
                 "title", "Fuel Dispenser Manufacturer | Huixian Zhenghe Machinery",
                 "description", "17-year OEM factory in Henan: fuel dispensers, mining dispensers, LPG dispensers, mini gas stations and parts. 1–6 nozzles, optional GPRS, 110/220/380V.",

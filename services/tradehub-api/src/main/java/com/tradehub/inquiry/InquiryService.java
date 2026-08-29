@@ -63,6 +63,7 @@ public class InquiryService {
         inquiry.setWhatsapp(req.getWhatsapp());
         inquiry.setQuantity(req.getQuantity());
         inquiry.setMessage(req.getMessage());
+        inquiry.setExtraJson(Jsons.toJson(req.getExtra()));
         inquiry.setUtmJson(Jsons.toJson(req.getUtm()));
         inquiry.setStatus("new");
         inquiry.setStarred(0);
@@ -119,7 +120,8 @@ public class InquiryService {
     }
 
     private String blob(Inquiry row) {
-        return ("" + row.getName() + row.getCompany() + row.getEmail() + row.getProductName() + row.getMessage() + row.getCountry()).toLowerCase();
+        return ("" + row.getName() + row.getCompany() + row.getEmail() + row.getProductName()
+                + row.getMessage() + row.getCountry() + row.getExtraJson()).toLowerCase();
     }
 
     public void updateStatus(Long id, String status) {
@@ -209,7 +211,7 @@ public class InquiryService {
     public String exportCsv(String status) {
         List<Inquiry> list = adminList(status, 1, 10_000).getList();
         StringBuilder sb = new StringBuilder();
-        sb.append("id,createdAt,status,source,starred,name,company,email,phone,country,whatsapp,product,quantity,utm,message\n");
+        sb.append("id,createdAt,status,source,starred,name,company,email,phone,country,whatsapp,product,quantity,utm,extra,message\n");
         for (Inquiry row : list) {
             sb.append(csv(row.getId())).append(',')
                     .append(csv(row.getCreatedAt())).append(',')
@@ -225,6 +227,7 @@ public class InquiryService {
                     .append(csv(row.getProductName())).append(',')
                     .append(csv(row.getQuantity())).append(',')
                     .append(csv(row.getUtmJson())).append(',')
+                    .append(csv(row.getExtraJson())).append(',')
                     .append(csv(row.getMessage()))
                     .append('\n');
         }
@@ -292,5 +295,22 @@ public class InquiryService {
         private String message;
         private String website;
         private Map<String, Object> utm;
+        private Map<String, Object> extra;
+    }
+
+    private String mergeMessage(String message, Map<String, Object> extra) {
+        StringBuilder sb = new StringBuilder(message == null ? "" : message.trim());
+        if (extra == null || extra.isEmpty()) {
+            return sb.toString();
+        }
+        if (!sb.isEmpty()) {
+            sb.append("\n\n");
+        }
+        extra.forEach((key, value) -> {
+            if (value != null && StringUtils.hasText(String.valueOf(value))) {
+                sb.append(key).append(": ").append(value).append('\n');
+            }
+        });
+        return sb.toString().trim();
     }
 }

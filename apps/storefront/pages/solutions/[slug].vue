@@ -13,6 +13,7 @@
 const route = useRoute()
 const localePath = useLocalePath()
 const { get } = useStoreApi()
+const { pageTitle, copy } = await useSiteBrand()
 const slug = String(route.params.slug)
 const { data: page } = await useAsyncData('sol-' + slug, async () => {
   try {
@@ -21,16 +22,10 @@ const { data: page } = await useAsyncData('sol-' + slug, async () => {
     return null
   }
 })
-const catalog: Record<string, { title: string; text: string }> = {
-  'gas-station': { title: 'Petrol stations', text: 'Island dispensers with POS protocols, 2–8 nozzles, 110/220/380V.' },
-  fleet: { title: 'Fleet & mining', text: 'High-flow and skid units for depots and camps.' },
-  marine: { title: 'Marine & remote', text: 'Mobile dispensers for docks and islands.' }
-}
-const fallback = catalog[slug] || { title: slug.replace(/-/g, ' '), text: 'Tell us voltage, hose count and destination port for this application.' }
-const title = computed(() => page.value?.title || fallback.title)
-const text = computed(() => page.value?.seoDescription || fallback.text)
+const title = computed(() => page.value?.title || slug.replace(/-/g, ' '))
+const text = computed(() => page.value?.seoDescription || copy('inquiryLead', 'inquiryLead'))
 usePageSeo({
-  title: (page.value?.seoTitle || title.value) + ' | ZhengHe Machinery',
+  title: pageTitle(page.value?.seoTitle || title.value),
   description: text.value,
   path: '/solutions/' + slug
 })

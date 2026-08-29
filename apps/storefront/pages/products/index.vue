@@ -3,8 +3,8 @@
     <div class="crumbs">
       <NuxtLink :to="localePath('/')">{{ $t('nav.home') }}</NuxtLink> / {{ $t('nav.products') }}
     </div>
-    <h1>{{ $t('productTitle') }}</h1>
-    <p class="muted">{{ $t('productLead') }}</p>
+    <h1>{{ copy('catalogTitle', 'productTitle') }}</h1>
+    <p class="muted">{{ copy('catalogLead', 'productLead') }}</p>
     <div class="chips">
       <button class="chip" :class="{ on: !category }" type="button" @click="goCat()">{{ $t('allModels') }}</button>
       <button v-for="c in cats" :key="c.id" class="chip" :class="{ on: category === c.slug }" type="button" @click="goCat(c.slug)">{{ c.name }}</button>
@@ -26,6 +26,7 @@
 const route = useRoute()
 const localePath = useLocalePath()
 const { get } = useStoreApi()
+const { copy, pageTitle } = await useSiteBrand()
 const category = computed(() => String(route.query.category || ''))
 const { data: catData } = await useAsyncData('categories', () => get('/categories'))
 const { data } = await useAsyncData(
@@ -35,9 +36,10 @@ const { data } = await useAsyncData(
 )
 const cats = computed(() => catData.value || [])
 const products = computed(() => data.value || [])
+const currentCat = computed(() => cats.value.find((c: any) => c.slug === category.value))
 usePageSeo({
-  title: 'Fuel Dispensers | ZhengHe Machinery',
-  description: 'Honesty, Intelligent, Elite, Aurora island dispensers, Prestige mini stations and 11A nozzles from Huixian Zhenghe, Henan.',
+  title: pageTitle(currentCat.value?.name || copy('catalogTitle', 'productTitle')),
+  description: currentCat.value?.seoDescription || currentCat.value?.description || copy('catalogLead', 'productLead'),
   path: '/products'
 })
 function goCat(slug?: string) {

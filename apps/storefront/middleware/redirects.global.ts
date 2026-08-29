@@ -12,19 +12,19 @@ export default defineNuxtRouteMiddleware(async (to) => {
     if (site) headers['X-Site-Code'] = site
     const res = await $fetch<any>(`${String(config.public.apiBase).replace(/\/$/, '')}/api/store/redirects`, { headers })
     const list = res?.data || []
-    const stripped = to.path.replace(/^\/(en|zh)(?=\/|$)/, '') || '/'
+    const stripped = to.path.replace(/^\/(en|zh|pt|ja|es|fr)(?=\/|$)/, '') || '/'
     const hit = list.find((r: any) => {
       const from = String(r.fromPath || '').replace(/\/$/, '') || '/'
       return from === stripped || from === to.path || from === stripped.replace(/\/$/, '')
     })
     if (!hit) return
-    const locale = to.path.match(/^\/(en|zh)/)?.[1] || 'en'
+    const locale = to.path.match(/^\/(en|zh|pt|ja|es|fr)/)?.[1] || 'en'
     let dest = String(hit.toPath || '/')
     if (dest.startsWith('http')) {
       return navigateTo(dest, { external: true, redirectCode: Number(hit.code) || 301 })
     }
     if (!dest.startsWith('/')) dest = '/' + dest
-    if (!/^\/(en|zh)(\/|$)/.test(dest)) dest = '/' + locale + dest
+    if (!/^\/(en|zh|pt|ja|es|fr)(\/|$)/.test(dest)) dest = '/' + locale + dest
     if (site) dest += (dest.includes('?') ? '&' : '?') + 'site=' + encodeURIComponent(site)
     return navigateTo(dest, { redirectCode: Number(hit.code) || 301 })
   } catch {

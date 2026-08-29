@@ -35,7 +35,7 @@
         <div class="panel-pad">
           <el-form :inline="true" :model="form">
             <el-form-item label="从"><el-input v-model="form.fromPath" placeholder="/old-pump" /></el-form-item>
-            <el-form-item label="到"><el-input v-model="form.toPath" placeholder="/products/t80-fuel-dispenser" /></el-form-item>
+            <el-form-item label="到"><el-input v-model="form.toPath" placeholder="/products/your-sku" /></el-form-item>
             <el-form-item><el-button type="primary" @click="save">添加</el-button></el-form-item>
           </el-form>
         </div>

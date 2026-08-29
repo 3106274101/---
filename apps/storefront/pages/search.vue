@@ -31,8 +31,9 @@ const { data } = await useAsyncData(
   { watch: [() => route.query.q] }
 )
 const hits = computed(() => data.value || [])
+const { pageTitle, copy } = await useSiteBrand()
 useHead({ meta: [{ name: 'robots', content: 'noindex,follow' }] })
-usePageSeo({ title: 'Search | ZhengHe Machinery', description: 'Search ZhengHe fuel dispensers and articles.', path: '/search' })
+usePageSeo({ title: pageTitle('Search'), description: copy('catalogLead', 'productLead'), path: '/search' })
 function go() {
   q.value = String(q.value || '')
   navigateTo({ path: route.path, query: { q: q.value } })

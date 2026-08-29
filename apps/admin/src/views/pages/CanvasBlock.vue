@@ -24,9 +24,9 @@
     <div v-else-if="block.type === 'specTable'" class="cv-pad">
       <h3>{{ block.props.heading }}</h3>
       <table>
-        <thead><tr><th>Model</th><th>Flow</th><th>Hoses</th></tr></thead>
+        <thead><tr><th v-for="c in specCols" :key="c">{{ c }}</th></tr></thead>
         <tbody>
-          <tr v-for="r in block.props.rows" :key="r.model"><td>{{ r.model }}</td><td>{{ r.flow }}</td><td>{{ r.hoses }}</td></tr>
+          <tr v-for="(r, i) in block.props.rows" :key="i"><td>{{ r.model }}</td><td>{{ r.flow }}</td><td>{{ r.hoses }}</td></tr>
         </tbody>
       </table>
     </div>
@@ -80,6 +80,10 @@
 import { computed } from 'vue'
 const props = defineProps<{ block: any; products: any[]; articles: any[] }>()
 const layout = computed(() => props.block.props.layout || 'split')
+const specCols = computed(() => {
+  const cols = props.block.props?.columns
+  return Array.isArray(cols) && cols.length ? cols : ['Model', 'Spec A', 'Spec B']
+})
 const heroStyle = computed(() => ({
   backgroundImage: layout.value === 'overlay' ? `url(${props.block.props.image})` : undefined
 }))

@@ -70,7 +70,7 @@ public class SiteTemplateService {
         if (exists != null && exists > 0) {
             return;
         }
-        for (SiteTemplateCatalog.PageSeed seed : SiteTemplateCatalog.pages(templateId)) {
+        for (SiteTemplateCatalog.PageSeed seed : SiteTemplateCatalog.pages(templateId, site.getName())) {
             CmsPage page = new CmsPage();
             page.setTenantId(site.getTenantId());
             page.setSiteId(site.getId());

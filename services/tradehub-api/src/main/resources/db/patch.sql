@@ -9,3 +9,5 @@ ALTER TABLE th_inquiry ADD COLUMN source VARCHAR(64);
 ALTER TABLE th_user ADD COLUMN last_login_at TIMESTAMP NULL;
 ALTER TABLE th_user ADD COLUMN failed_logins INT NOT NULL DEFAULT 0;
 ALTER TABLE th_user ADD COLUMN locked_until TIMESTAMP NULL;
+ALTER TABLE th_product ADD COLUMN trade_json TEXT;
+ALTER TABLE th_inquiry ADD COLUMN extra_json TEXT;

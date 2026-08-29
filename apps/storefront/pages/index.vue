@@ -6,12 +6,14 @@
 
 <script setup lang="ts">
 const { get, config, siteCode } = useStoreApi()
+const { locale } = useI18n()
 const { data: home } = await useAsyncData('home-' + siteCode(), () => get('/home'))
+const { siteName, pageTitle } = await useSiteBrand()
 const brand = home.value?.brand || {}
 const seo = home.value?.seo || {}
 const faqs = (home.value?.page?.blocks || []).find((b: any) => b.type === 'faq')?.props?.items || []
 usePageSeo({
-  title: seo.title || 'Fuel Dispenser Manufacturer | ZhengHe Machinery',
+  title: seo.title || pageTitle(),
   description: seo.description,
   path: '/',
   image: seo.ogImage || brand.heroImage,
@@ -19,7 +21,7 @@ usePageSeo({
     {
       '@context': 'https://schema.org',
       '@type': 'Organization',
-      name: brand.logoText || 'ZhengHe',
+      name: siteName.value,
       url: config.public.siteUrl,
       email: brand.email,
       telephone: brand.phone,
@@ -28,11 +30,11 @@ usePageSeo({
     {
       '@context': 'https://schema.org',
       '@type': 'WebSite',
-      name: brand.logoText || 'ZhengHe',
+      name: siteName.value,
       url: config.public.siteUrl,
       potentialAction: {
         '@type': 'SearchAction',
-        target: `${config.public.siteUrl}/en/search?q={search_term_string}`,
+        target: `${String(config.public.siteUrl).replace(/\/$/, '')}/${locale.value}/search?q={search_term_string}`,
         'query-input': 'required name=search_term_string'
       }
     },

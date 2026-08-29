@@ -39,9 +39,9 @@
         <div class="wrap">
           <h2>{{ block.props.heading || 'Model comparison' }}</h2>
           <table class="table">
-            <thead><tr><th>Model</th><th>Flow</th><th>Hoses</th></tr></thead>
+            <thead><tr><th v-for="c in specCols(block)" :key="c">{{ c }}</th></tr></thead>
             <tbody>
-              <tr v-for="r in block.props.rows" :key="r.model"><td>{{ r.model }}</td><td>{{ r.flow }}</td><td>{{ r.hoses }}</td></tr>
+              <tr v-for="(r, i) in block.props.rows" :key="i"><td>{{ r.model }}</td><td>{{ r.flow }}</td><td>{{ r.hoses }}</td></tr>
             </tbody>
           </table>
         </div>
@@ -165,25 +165,27 @@ const articles = computed(() => props.articles || [])
 function heroLayout(block: any) {
   return block.props?.layout || 'split'
 }
+function specCols(block: any) {
+  const cols = block.props?.columns
+  return Array.isArray(cols) && cols.length ? cols : ['Model', 'Spec A', 'Spec B']
+}
 function trustHint(item: string) {
   const text = String(item).toLowerCase()
-  if (text.includes('ce')) return 'European standards'
-  if (text.includes('iso')) return 'Quality system certified'
-  if (text.includes('countr') || text.includes('全球')) return 'Export markets'
-  if (text.includes('year') || text.includes('年')) return 'Petroleum equipment'
-  if (text.includes('nozzle') || text.includes('枪')) return 'Flexible layout'
-  if (text.includes('gprs')) return 'Remote monitoring'
-  if (text.includes('110') || text.includes('380') || text.includes('volt')) return 'Station voltage'
+  if (text.includes('ce')) return 'Certified'
+  if (text.includes('iso')) return 'Quality system'
+  if (text.includes('countr') || text.includes('全球') || text.includes('export')) return 'Export markets'
+  if (text.includes('year') || text.includes('年')) return 'Experience'
+  if (text.includes('oem')) return 'Private label'
   return ''
 }
 function factoryTiles(block: any) {
   if (Array.isArray(block.props?.tiles) && block.props.tiles.length) return block.props.tiles
   const img = block.props?.image
   return [
-    { title: 'Modern manufacturing', text: 'CNC, painting and explosion-proof assembly.', image: img },
-    { title: 'Rigorous testing', text: 'Meter calibration and 72-hour aging.', image: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=800&q=80' },
-    { title: 'Global export', text: 'Packed for 80+ destination markets.', image: 'https://images.unsplash.com/photo-1578575437130-527eed3abbec?auto=format&fit=crop&w=800&q=80' },
-    { title: 'Secure packaging', text: 'Container photos with every shipment.', image: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=800&q=80' }
+    { title: 'Manufacturing', text: 'Production lines matched to your catalog.', image: img },
+    { title: 'Quality check', text: 'Inspection before packing.', image: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=800&q=80' },
+    { title: 'Global export', text: 'Packed for destination markets.', image: 'https://images.unsplash.com/photo-1578575437130-527eed3abbec?auto=format&fit=crop&w=800&q=80' },
+    { title: 'Secure packing', text: 'Photos with every shipment if you ask.', image: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=800&q=80' }
   ]
 }
 </script>

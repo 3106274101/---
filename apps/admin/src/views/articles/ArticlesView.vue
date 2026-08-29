@@ -3,7 +3,7 @@
     <div class="page-head">
       <div>
         <h1>内容</h1>
-        <p>博客文章用于主题聚类，封面与摘要会显示在独立站。</p>
+        <p>当前编辑语言：{{ localeLabel }}。顶栏切换语言后，标题和正文会按该语言单独保存。</p>
       </div>
       <el-button type="primary" @click="open()">写文章</el-button>
     </div>
@@ -63,10 +63,12 @@ import { ElMessage } from 'element-plus'
 import http from '../../api/http'
 import MediaPicker from '../../components/MediaPicker.vue'
 import { suggestSlug } from '../../utils/slug'
+import { localeLabel as formatLocale } from '../../utils/locales'
 
 const list = ref<any[]>([])
 const visible = ref(false)
 const route = useRoute()
+const localeLabel = formatLocale(localStorage.getItem('th_locale') || 'en')
 const form = reactive<any>({ status: 'draft', siteId: Number(localStorage.getItem('th_site') || 1) })
 async function load() {
   const res: any = await http.get('/admin/articles', { params: { siteId: form.siteId } })

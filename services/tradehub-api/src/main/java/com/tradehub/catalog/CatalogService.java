@@ -118,6 +118,7 @@ public class CatalogService {
         product.setCoverUrl(req.getCoverUrl());
         product.setGalleryJson(Jsons.toJson(req.getGallery()));
         product.setAttrJson(Jsons.toJson(req.getAttrs()));
+        product.setTradeJson(Jsons.toJson(req.getTrade()));
         product.setStatus(normalizePublishStatus(req.getStatus(), req.getScheduledAt()));
         product.setScheduledAt(req.getScheduledAt());
         product.setSortOrder(req.getSortOrder() == null ? 0 : req.getSortOrder());
@@ -177,6 +178,7 @@ public class CatalogService {
         copy.setCoverUrl(src.getCoverUrl());
         copy.setGalleryJson(src.getGalleryJson());
         copy.setAttrJson(src.getAttrJson());
+        copy.setTradeJson(src.getTradeJson());
         copy.setStatus("draft");
         copy.setSortOrder(src.getSortOrder());
         copy.setFeatured(0);
@@ -266,6 +268,7 @@ public class CatalogService {
         map.put("coverUrl", product.getCoverUrl());
         map.put("gallery", Jsons.list(product.getGalleryJson()));
         map.put("attrs", Jsons.map(product.getAttrJson()));
+        map.put("trade", Jsons.map(product.getTradeJson()));
         map.put("status", product.getStatus());
         map.put("featured", Integer.valueOf(1).equals(product.getFeatured()));
         map.put("sortOrder", product.getSortOrder());
@@ -466,6 +469,7 @@ public class CatalogService {
         private String coverUrl;
         private List<Object> gallery;
         private Map<String, Object> attrs;
+        private Map<String, Object> trade;
         private String status;
         private Integer sortOrder;
         private Boolean featured;

@@ -9,7 +9,7 @@
         TRADEHUB
       </div>
       <h1>贸站通工作台</h1>
-      <p>演示：超管 admin / admin123，老板 fueltech / fueltech123（新库还有 editor / sales）</p>
+      <p>演示租户（加油站示例站）：超管 admin / admin123，老板 fueltech / fueltech123（新库还有 editor / sales）</p>
       <el-form @submit.prevent="submit">
         <el-form-item><el-input v-model="username" placeholder="用户名" size="large" /></el-form-item>
         <el-form-item><el-input v-model="password" type="password" placeholder="密码" show-password size="large" /></el-form-item>

@@ -58,10 +58,9 @@
           <el-select v-if="sites.length" v-model="siteId" size="small" style="width: 200px" @change="onSite">
             <el-option v-for="s in sites" :key="s.id" :label="s.name" :value="String(s.id)" />
           </el-select>
-          <div class="lang-switch">
-            <button :class="{ on: locale === 'en' }" @click="onLocale('en')">EN</button>
-            <button :class="{ on: locale === 'zh' }" @click="onLocale('zh')">中文</button>
-          </div>
+          <el-select v-model="locale" size="small" style="width: 148px" title="编辑内容语言" @change="onLocale">
+            <el-option v-for="l in contentLocales" :key="l.code" :label="l.native" :value="l.code" />
+          </el-select>
         </div>
         <div class="top-right">
           <el-input
@@ -115,6 +114,7 @@ import { ElMessage } from 'element-plus'
 import http from '../api/http'
 import { storePreview } from '../config'
 import { useAuthStore } from '../stores/auth'
+import { CONTENT_LOCALES, localeMeta } from '../utils/locales'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -124,6 +124,7 @@ const tenants = ref<any[]>([])
 const tenantId = ref(localStorage.getItem('th_tenant') || '')
 const siteId = ref(localStorage.getItem('th_site') || '')
 const locale = ref(localStorage.getItem('th_locale') || 'en')
+const contentLocales = CONTENT_LOCALES
 const newInquiries = ref(0)
 const isBuilder = computed(() => /^\/pages\/\d+/.test(route.path))
 const pwdVisible = ref(false)
@@ -237,7 +238,6 @@ function onTenant(val: string) {
   location.reload()
 }
 function onLocale(val: string) {
-  if (locale.value === val) return
   localStorage.setItem('th_locale', val)
   location.reload()
 }
@@ -257,7 +257,8 @@ async function changePassword() {
 }
 function openStore() {
   const current = sites.value.find((s: any) => String(s.id) === siteId.value)
-  const code = current?.code || 'fueltech'
-  window.open(storePreview('/en', code), '_blank')
+  const code = current?.code || sites.value[0]?.code || ''
+  const loc = localeMeta(locale.value).code
+  window.open(storePreview('/' + loc, code), '_blank')
 }
 </script>

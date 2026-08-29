@@ -3,7 +3,7 @@
     <div class="page-head">
       <div>
         <h1>站点</h1>
-        <p>创建时选择一套独立站模板，会写入该风格的配色、首页区块和内页。</p>
+        <p>选择视觉模板（配色与布局）。类目、商品、上下架和询盘字段按公司自己配置，不绑定某一行业。</p>
       </div>
       <el-button type="primary" @click="open()">新建站点</el-button>
     </div>
@@ -53,15 +53,25 @@
             </button>
           </div>
         </el-form-item>
-        <el-form-item label="名称"><el-input v-model="form.name" placeholder="如 ZhengHe Catalog" /></el-form-item>
-        <el-form-item label="编码"><el-input v-model="form.code" placeholder="英文小写，如 zhenghe-catalog" :disabled="!!form.id" /></el-form-item>
+        <el-form-item label="名称"><el-input v-model="form.name" placeholder="如 Acme Lighting" /></el-form-item>
+        <el-form-item label="编码"><el-input v-model="form.code" placeholder="英文小写，如 acme-lighting" :disabled="!!form.id" /></el-form-item>
         <el-form-item v-if="form.id" label="模板">
           <el-select v-model="form.theme" style="width:100%">
             <el-option v-for="t in templates" :key="t.id" :label="t.nameZh + ' · ' + t.name" :value="t.id" />
           </el-select>
           <div class="form-hint">编辑时只改风格编码和后续品牌色；页面内容不会重灌。</div>
         </el-form-item>
-        <el-form-item label="语言"><el-input v-model="form.locales" placeholder="en,zh" /></el-form-item>
+        <el-form-item label="前台语言">
+          <el-checkbox-group v-model="form.localeList">
+            <el-checkbox v-for="l in contentLocales" :key="l.code" :label="l.code" :value="l.code">{{ l.native }}</el-checkbox>
+          </el-checkbox-group>
+          <div class="form-hint">独立站顶栏会显示已勾选的语言。商品/页面请用顶栏切换语言分别填写。</div>
+        </el-form-item>
+        <el-form-item label="默认语言">
+          <el-select v-model="form.defaultLocale" style="width:100%">
+            <el-option v-for="l in contentLocales.filter((x) => form.localeList.includes(x.code))" :key="l.code" :label="l.native" :value="l.code" />
+          </el-select>
+        </el-form-item>
         <el-form-item label="状态">
           <el-select v-model="form.status" style="width:100%">
             <el-option label="建设中" value="building" />
@@ -114,6 +124,7 @@ import { ElMessage } from 'element-plus'
 import http from '../../api/http'
 import { storePreview } from '../../config'
 import { useAuthStore } from '../../stores/auth'
+import { CONTENT_LOCALES, parseLocales } from '../../utils/locales'
 
 const auth = useAuthStore()
 const list = ref<any[]>([])
@@ -126,7 +137,8 @@ const newHost = ref('')
 const newPrimary = ref(true)
 const dnsHint = ref('')
 const router = useRouter()
-const form = reactive<any>({ theme: 'industrial', locales: 'en,zh', status: 'building', defaultLocale: 'en' })
+const contentLocales = CONTENT_LOCALES
+const form = reactive<any>({ theme: 'industrial', localeList: ['en', 'zh'], locales: 'en,zh', status: 'building', defaultLocale: 'en' })
 
 async function load() {
   const res: any = await http.get('/admin/sites')
@@ -138,7 +150,10 @@ async function loadTemplates() {
 }
 function open(row?: any) {
   Object.assign(form, row || { id: undefined, theme: 'industrial', locales: 'en,zh', status: 'building', defaultLocale: 'en', name: '', code: '' })
-  if (Array.isArray(form.locales)) form.locales = form.locales.join(',')
+  form.localeList = parseLocales(form.locales)
+  if (!form.defaultLocale || !form.localeList.includes(form.defaultLocale)) {
+    form.defaultLocale = form.localeList[0] || 'en'
+  }
   visible.value = true
 }
 function goTheme(row: any) {
@@ -216,7 +231,13 @@ async function save() {
     ElMessage.warning('请填写名称和编码')
     return
   }
-  const payload = { ...form, template: form.theme }
+  const localeList = parseLocales(form.localeList)
+  if (!localeList.length) {
+    ElMessage.warning('至少选择一种前台语言')
+    return
+  }
+  const defaultLocale = localeList.includes(form.defaultLocale) ? form.defaultLocale : localeList[0]
+  const payload = { ...form, template: form.theme, locales: localeList, defaultLocale }
   if (form.id) await http.put('/admin/sites/' + form.id, payload)
   else await http.post('/admin/sites', payload)
   ElMessage.success(form.id ? '已更新' : '站点已按模板创建，可点预览查看')
@@ -227,7 +248,7 @@ function initials(name?: string) {
   return String(name || 'TH').replace(/\s+/g, '').slice(0, 2).toUpperCase()
 }
 function localeText(locales: any) {
-  return Array.isArray(locales) ? locales.join(' / ') : locales
+  return parseLocales(locales).map((c) => CONTENT_LOCALES.find((l) => l.code === c)?.short || c).join(' / ')
 }
 function statusLabel(status: string) {
   return ({ live: '已上线', building: '建设中', draft: '草稿', disabled: '停用' } as any)[status] || status

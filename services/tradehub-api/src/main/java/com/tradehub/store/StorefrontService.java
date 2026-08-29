@@ -56,6 +56,7 @@ public class StorefrontService {
         data.put("seo", Jsons.map(site.getSeoJson()));
         data.put("locale", locale);
         data.put("nav", defaultNav());
+        data.put("categories", categories(site, locale));
         return data;
     }
 

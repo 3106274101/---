@@ -9,6 +9,13 @@
     <input v-model="form.whatsapp" placeholder="WhatsApp" />
     <input v-model="form.country" :placeholder="$t('form.country')" />
     <input v-model="form.quantity" :placeholder="$t('form.quantity')" />
+    <template v-for="field in inquiryFields" :key="field.key">
+      <select v-if="field.type === 'select'" v-model="extra[field.key]">
+        <option value="">{{ fieldLabel(field) }}</option>
+        <option v-for="opt in field.options || []" :key="opt" :value="opt">{{ opt }}</option>
+      </select>
+      <input v-else v-model="extra[field.key]" :placeholder="field.placeholder || fieldLabel(field)" />
+    </template>
     <textarea v-model="form.message" rows="5" :placeholder="$t('form.message')" />
     <label><input type="checkbox" v-model="agree" required /> {{ $t('form.agree') }}</label>
     <button class="btn" type="submit" :disabled="loading">{{ $t('form.submit') }}</button>
@@ -20,11 +27,18 @@
 const props = defineProps<{ productId?: number; productName?: string }>()
 const route = useRoute()
 const { post } = useStoreApi()
+const { inquiryFields, fieldLabel, siteName } = await useSiteBrand()
 const loading = ref(false)
 const done = ref(false)
 const agree = ref(false)
 const qName = String(route.query.product || props.productName || '')
 const qId = Number(route.query.productId || props.productId || 0) || props.productId
+const extra = reactive<Record<string, string>>({})
+watch(inquiryFields, (fields) => {
+  for (const field of fields || []) {
+    if (field?.key && extra[field.key] === undefined) extra[field.key] = ''
+  }
+}, { immediate: true })
 const form = reactive({
   name: '',
   company: '',
@@ -33,10 +47,11 @@ const form = reactive({
   country: '',
   whatsapp: '',
   quantity: '',
-  message: qName ? `I am interested in ${qName}. Please quote voltage, hose count and destination port.` : '',
+  message: qName ? `I am interested in ${qName}. Please send a quotation.` : '',
   website: '',
   productId: qId,
   productName: qName,
+  extra,
   utm: {
     source: String(route.query.utm_source || ''),
     medium: String(route.query.utm_medium || ''),
@@ -55,7 +70,7 @@ async function submit() {
     try {
       const gtag = (window as any).gtag
       if (typeof gtag === 'function') {
-        gtag('event', 'generate_lead', { product: form.productName || '', country: form.country })
+        gtag('event', 'generate_lead', { product: form.productName || '', country: form.country, brand: siteName.value })
       }
     } catch { /* no analytics */ }
   } finally {

@@ -119,9 +119,20 @@ public class TenantService {
             site.setDefaultLocale(body.get("defaultLocale").toString());
         }
         if (body.get("locales") instanceof List<?> list) {
-            site.setLocales(list.stream().map(Object::toString).reduce((a, b) -> a + "," + b).orElse("en"));
+            String joined = list.stream()
+                    .map(Object::toString)
+                    .map(String::trim)
+                    .filter(s -> !s.isBlank())
+                    .distinct()
+                    .collect(java.util.stream.Collectors.joining(","));
+            site.setLocales(joined.isBlank() ? "en" : joined);
         } else if (body.get("locales") != null) {
-            site.setLocales(body.get("locales").toString());
+            String joined = java.util.Arrays.stream(body.get("locales").toString().split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isBlank())
+                    .distinct()
+                    .collect(java.util.stream.Collectors.joining(","));
+            site.setLocales(joined.isBlank() ? "en" : joined);
         }
         if (body.get("brand") instanceof Map<?, ?> brand) {
             site.setBrandJson(Jsons.toJson(brand));

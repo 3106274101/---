@@ -7,12 +7,13 @@
 </template>
 <script setup lang="ts">
 const { get } = useStoreApi()
+const { pageTitle } = await useSiteBrand()
 const { data: page } = await useAsyncData('cookies', async () => {
   try { return await get('/pages/cookies') } catch { return null }
 })
 usePageSeo({
-  title: page.value?.seoTitle || 'Cookie Policy | ZhengHe Machinery',
-  description: page.value?.seoDescription || 'Cookie usage on ZhengHe websites.',
+  title: page.value?.seoTitle || pageTitle('Cookie Policy'),
+  description: page.value?.seoDescription || 'Cookie usage on this website.',
   path: '/cookies'
 })
 </script>

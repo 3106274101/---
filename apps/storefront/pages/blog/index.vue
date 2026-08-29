@@ -12,7 +12,8 @@
 <script setup lang="ts">
 const localePath = useLocalePath()
 const { get } = useStoreApi()
+const { pageTitle, copy } = await useSiteBrand()
 const { data } = await useAsyncData('blog', () => get('/articles'))
 const articles = computed(() => data.value || [])
-usePageSeo({ title: 'Fuel Dispenser Guides | ZhengHe Machinery', description: 'Nozzle count, mini stations and GPRS notes from ZhengHe.', path: '/blog' })
+usePageSeo({ title: pageTitle('Blog'), description: copy('catalogLead', 'productLead'), path: '/blog' })
 </script>

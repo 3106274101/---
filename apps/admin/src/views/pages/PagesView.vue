@@ -74,7 +74,8 @@ async function remove(row: any) {
   load()
 }
 function preview(row: any) {
-  const path = row.slug === 'home' ? '/en' : `/en/${row.slug}`
+  const loc = localStorage.getItem('th_locale') || 'en'
+  const path = row.slug === 'home' ? '/' + loc : `/${loc}/${row.slug}`
   const code = localStorage.getItem('th_site_code') || ''
   window.open(storePreview(path, code), '_blank')
 }

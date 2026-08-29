@@ -36,7 +36,7 @@
           <el-input v-model="form.name" placeholder="如 Huixian Zhenghe Machinery Equipment Co., Ltd." />
         </el-form-item>
         <el-form-item label="租户编码" required>
-          <el-input v-model="form.code" placeholder="英文小写，如 fueltech" :disabled="!!form.id" />
+          <el-input v-model="form.code" placeholder="英文小写，如 acme" :disabled="!!form.id" />
         </el-form-item>
         <el-form-item label="联系邮箱">
           <el-input v-model="form.contactEmail" placeholder="export@example.com" />

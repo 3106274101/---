@@ -23,6 +23,7 @@ public class Product {
     private String coverUrl;
     private String galleryJson;
     private String attrJson;
+    private String tradeJson;
     private String status;
     private Integer sortOrder;
     private Integer featured;

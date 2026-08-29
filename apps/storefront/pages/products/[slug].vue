@@ -22,7 +22,18 @@
         <p class="muted">{{ $t('replyHint') }}</p>
       </aside>
     </div>
-    <div class="section">
+    <div class="section" v-if="hasTrade">
+      <h2>{{ $t('tradeInfo') }}</h2>
+      <table class="table">
+        <tr v-if="trade.moq"><td style="width:240px">MOQ</td><td>{{ trade.moq }}</td></tr>
+        <tr v-if="trade.leadTime"><td>Lead time</td><td>{{ trade.leadTime }}</td></tr>
+        <tr v-if="trade.packing"><td>Packing</td><td>{{ trade.packing }}</td></tr>
+        <tr v-if="trade.certifications"><td>Certifications</td><td>{{ trade.certifications }}</td></tr>
+        <tr v-if="trade.oem"><td>OEM</td><td>{{ trade.oem }}</td></tr>
+      </table>
+      <p v-if="trade.datasheetUrl"><a :href="trade.datasheetUrl" target="_blank" rel="noopener">{{ $t('datasheet') }}</a></p>
+    </div>
+    <div class="section" v-if="Object.keys(p.attrs || {}).length">
       <h2>{{ $t('specs') }}</h2>
       <table class="table">
         <tr v-for="(v, k) in p.attrs" :key="k"><td style="width:240px">{{ specLabel(String(k)) }}</td><td>{{ v }}</td></tr>
@@ -56,6 +67,7 @@
 const route = useRoute()
 const localePath = useLocalePath()
 const { get, config, siteCode } = useStoreApi()
+const { siteName } = await useSiteBrand()
 const slug = String(route.params.slug)
 const { data } = await useAsyncData('p-' + slug, () => get('/products/' + slug))
 const { data: ctx } = await useAsyncData('ctx-' + siteCode(), () => get('/context'))
@@ -63,6 +75,8 @@ const p = computed(() => data.value)
 if (!p.value) {
   throw createError({ statusCode: 404, statusMessage: 'Product not found' })
 }
+const trade = computed(() => p.value?.trade || {})
+const hasTrade = computed(() => Object.values(trade.value).some((v) => v && String(v).trim()))
 const inquiryHref = computed(() => localePath('/inquiry') + '?product=' + encodeURIComponent(p.value.name || '') + '&productId=' + p.value.id)
 const waHref = computed(() => {
   const raw = String(ctx.value?.brand?.whatsapp || '').replace(/\D/g, '')
@@ -74,20 +88,8 @@ const images = computed(() => {
   return [...new Set(list)]
 })
 const currentImg = ref(images.value[0])
-const labels: Record<string, string> = {
-  flow_rate: 'Flow rate',
-  accuracy: 'Accuracy',
-  hose_count: 'Hoses / nozzles',
-  product_types: 'Fuel types',
-  explosion_proof: 'Explosion-proof',
-  voltage: 'Voltage',
-  display: 'Display',
-  mounting: 'Mounting',
-  communication: 'Protocol',
-  certification: 'Certifications'
-}
 function specLabel(key: string) {
-  return labels[key] || key.replace(/_/g, ' ')
+  return key.replace(/_/g, ' ')
 }
 const extra = Object.entries(p.value.attrs || {}).map(([name, value]) => ({
   '@type': 'PropertyValue', name, value
@@ -105,12 +107,12 @@ usePageSeo({
     description: p.value.summary,
     image: p.value.coverUrl,
     sku: p.value.model,
-    brand: { '@type': 'Brand', name: 'ZhengHe' },
+    brand: { '@type': 'Brand', name: siteName.value },
     additionalProperty: extra,
     offers: {
       '@type': 'Offer',
       availability: 'https://schema.org/InStock',
-      url: `${config.public.siteUrl}/en/products/${slug}`,
+      url: `${String(config.public.siteUrl).replace(/\/$/, '')}${localePath('/products/' + slug)}`,
       description: 'Request quotation'
     }
   }

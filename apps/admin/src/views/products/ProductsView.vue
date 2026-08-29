@@ -3,7 +3,7 @@
     <div class="page-head">
       <div>
         <h1>商品</h1>
-        <p>机型、上下架与分类。封面会显示在独立站产品页。</p>
+        <p>分类、上下架、精选与封面会同步到当前站点的独立站目录。</p>
       </div>
       <div class="page-tools">
         <el-input v-model="keyword" placeholder="搜索型号 / 名称" style="width:180px" clearable @clear="load" @keyup.enter="load" />

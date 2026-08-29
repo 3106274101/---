@@ -3,11 +3,9 @@
     <div class="contact-grid">
       <div>
         <h1>{{ $t('cta') }}</h1>
-        <p>{{ $t('inquiryLead') }}</p>
+        <p>{{ copy('inquiryLead', 'inquiryLead') }}</p>
         <ul>
-          <li>Voltage: 110V / 220V / 380V</li>
-          <li>Hose count and fuel types</li>
-          <li>Destination port and OEM panel</li>
+          <li v-for="hint in inquiryHints" :key="hint">{{ hint }}</li>
         </ul>
       </div>
       <InquiryForm />
@@ -15,5 +13,6 @@
   </div>
 </template>
 <script setup lang="ts">
-usePageSeo({ title: 'Get a Quote | ZhengHe Machinery', description: 'RFQ for ZhengHe fuel dispensers, mini stations and nozzles.', path: '/inquiry' })
+const { copy, inquiryHints, pageTitle } = await useSiteBrand()
+usePageSeo({ title: pageTitle('Get a Quote'), description: copy('inquiryLead', 'inquiryLead'), path: '/inquiry' })
 </script>

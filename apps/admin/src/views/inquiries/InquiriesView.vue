@@ -56,6 +56,9 @@
         <p v-if="(current.repeatCount || 0) > 1" class="mark">同一邮箱已询盘 {{ current.repeatCount }} 次</p>
         <p v-if="utmText(current)" class="sub">投放 {{ utmText(current) }}</p>
         <el-divider />
+        <div v-if="extraEntries(current).length" class="extra-box">
+          <p v-for="[k, v] in extraEntries(current)" :key="k"><b>{{ k }}</b> {{ v }}</p>
+        </div>
         <p style="white-space:pre-wrap">{{ current.message }}</p>
         <el-divider />
         <el-form label-width="90px">
@@ -222,6 +225,16 @@ function statusLabel(status: string) {
 function formatTime(v?: string) {
   return v ? String(v).replace('T', ' ').slice(0, 16) : ''
 }
+function extraEntries(row: any): [string, string][] {
+  try {
+    const raw = row.extra || row.extraJson
+    const map = typeof raw === 'string' ? JSON.parse(raw || '{}') : (raw || {})
+    return Object.entries(map).filter(([, v]) => v !== null && String(v).trim())
+      .map(([k, v]) => [k, String(v)])
+  } catch {
+    return []
+  }
+}
 function utmText(row: any) {
   try {
     const u = typeof row.utmJson === 'string' ? JSON.parse(row.utmJson || '{}') : row.utm || {}
@@ -240,4 +253,7 @@ onMounted(load)
 .note-item { border-bottom: 1px solid var(--th-line); padding: 8px 0; }
 .note-item span { color: var(--th-muted); font-size: 12px; }
 .note-item p { margin: 4px 0 0; white-space: pre-wrap; }
+.extra-box { margin-bottom: 12px; }
+.extra-box p { margin: 4px 0; }
+.extra-box b { display: inline-block; min-width: 120px; color: var(--th-muted); }
 </style>

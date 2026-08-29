@@ -4,6 +4,7 @@
       <div class="builder-bar-left">
         <el-button text @click="$router.push('/pages')">返回</el-button>
         <strong>页面装修</strong>
+        <el-tag size="small">{{ localeLabel }}</el-tag>
         <el-input v-model="page.title" size="small" style="width: 200px" />
         <el-tag size="small">{{ page.slug }}</el-tag>
       </div>
@@ -133,11 +134,18 @@
             <el-form-item v-if="current.type === 'logoWall'" label="市场/品牌">
               <el-input v-model="logoText" type="textarea" :rows="3" @blur="syncLogo" />
             </el-form-item>
+            <el-form-item v-if="current.type === 'specTable'" label="列名">
+              <div style="display:flex;gap:8px">
+                <el-input v-model="ensureCols(current)[0]" placeholder="列 1" />
+                <el-input v-model="ensureCols(current)[1]" placeholder="列 2" />
+                <el-input v-model="ensureCols(current)[2]" placeholder="列 3" />
+              </div>
+            </el-form-item>
             <el-form-item v-if="current.type === 'specTable'" label="对照行">
               <div v-for="(r, i) in current.props.rows" :key="i" class="mini-card">
-                <el-input v-model="r.model" placeholder="型号" />
-                <el-input v-model="r.flow" placeholder="流量" style="margin-top:6px" />
-                <el-input v-model="r.hoses" placeholder="枪数" style="margin-top:6px" />
+                <el-input v-model="r.model" placeholder="型号 / SKU" />
+                <el-input v-model="r.flow" placeholder="参数一" style="margin-top:6px" />
+                <el-input v-model="r.hoses" placeholder="参数二" style="margin-top:6px" />
               </div>
               <el-button size="small" @click="current.props.rows.push({ model: '', flow: '', hoses: '' })">加一行</el-button>
             </el-form-item>
@@ -168,8 +176,10 @@ import http from '../../api/http'
 import { storePreview } from '../../config'
 import { BLOCK_CATALOG, createBlock, type BlockType } from './blockCatalog'
 import CanvasBlock from './CanvasBlock.vue'
+import { localeLabel as formatLocale } from '../../utils/locales'
 
 const route = useRoute()
+const localeLabel = formatLocale(localStorage.getItem('th_locale') || 'en')
 const page = ref<any>(null)
 const selected = ref(0)
 const device = ref<'desktop' | 'tablet' | 'mobile'>('desktop')
@@ -241,10 +251,20 @@ function syncCert() {
 function syncLogo() {
   current.value.props.items = logoText.value.split('\n').map((s) => s.trim()).filter(Boolean)
 }
+function ensureCols(block: any) {
+  if (!block.props) block.props = {}
+  if (!Array.isArray(block.props.columns) || block.props.columns.length < 3) {
+    block.props.columns = ['Model', 'Spec A', 'Spec B']
+  }
+  return block.props.columns
+}
 function syncSideTexts() {
   if (current.value?.type === 'trustBar') trustText.value = (current.value.props.items || []).join('\n')
   if (current.value?.type === 'certificates') certText.value = (current.value.props.items || []).join('\n')
   if (current.value?.type === 'logoWall') logoText.value = (current.value.props.items || []).join('\n')
+  if (current.value?.type === 'specTable' && !Array.isArray(current.value.props.columns)) {
+    current.value.props.columns = ['Model', 'Spec A', 'Spec B']
+  }
 }
 async function save() {
   saving.value = true
@@ -257,7 +277,8 @@ async function save() {
 }
 function previewSite() {
   const code = localStorage.getItem('th_site_code') || ''
-  window.open(storePreview('/en', code), '_blank')
+  const loc = localStorage.getItem('th_locale') || 'en'
+  window.open(storePreview('/' + loc, code), '_blank')
 }
 </script>
 

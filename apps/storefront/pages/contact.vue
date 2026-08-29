@@ -6,7 +6,7 @@
         <p>{{ brand.tagline }}</p>
         <p><b>{{ brand.address }}</b></p>
         <p>{{ brand.email }}<br>{{ brand.phone }}</p>
-        <p>WhatsApp {{ brand.whatsapp }}</p>
+        <p v-if="brand.whatsapp">WhatsApp {{ brand.whatsapp }}</p>
         <p class="muted">{{ $t('replyHint') }}</p>
       </div>
       <div>
@@ -17,8 +17,10 @@
   </div>
 </template>
 <script setup lang="ts">
-const { get } = useStoreApi()
-const { data } = await useAsyncData('ctx-contact', () => get('/context'))
-const brand = computed(() => data.value?.brand || {})
-usePageSeo({ title: 'Contact | ZhengHe Machinery', description: 'Cathy@machineryzh.com · +86 18567535165 · Xinxiang, Henan.', path: '/contact' })
+const { brand, pageTitle } = await useSiteBrand()
+usePageSeo({
+  title: pageTitle('Contact'),
+  description: [brand.value.email, brand.value.phone, brand.value.address].filter(Boolean).join(' · '),
+  path: '/contact'
+})
 </script>

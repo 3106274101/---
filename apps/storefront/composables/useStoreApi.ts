@@ -1,3 +1,5 @@
+import { localeMeta } from '~/utils/locales'
+
 export function useStoreApi() {
   const config = useRuntimeConfig()
   const { locale } = useI18n()
@@ -113,7 +115,7 @@ export function usePageSeo(opts: {
       { property: 'og:type', content: opts.type || 'website' },
       { property: 'og:url', content: canonical },
       { property: 'og:image', content: opts.image || '' },
-      { property: 'og:locale', content: locale.value === 'zh' ? 'zh_CN' : 'en_US' },
+      { property: 'og:locale', content: localeMeta(locale.value).og },
       { name: 'twitter:card', content: 'summary_large_image' }
     ],
     link: [{ rel: 'canonical', href: canonical }, ...list]

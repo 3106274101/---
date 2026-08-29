@@ -48,6 +48,8 @@ button { font: inherit; }
 .search-mini input { border: 0; padding: 8px 10px; width: 140px; font: inherit; }
 .search-mini button { border: 0; background: var(--navy); color: #fff; padding: 8px 10px; cursor: pointer; }
 .lang { font-size: 13px; color: var(--muted); }
+.lang-switch { display: flex; align-items: center; gap: 8px; }
+.lang-switch .lang.on { color: var(--cta); font-weight: 700; }
 .menu-btn { display: none; border: 1px solid var(--line); background: #fff; padding: 8px 10px; cursor: pointer; }
 
 .drawer {

@@ -23,8 +23,8 @@ public final class SiteTemplateCatalog {
         return files() + fileName;
     }
 
-    public static final String ABOUT_EN = "Zhenghe Machinery Equipment Co., Ltd., a professional Chinese manufacturer with 17-year experience, produces and wholesales fuel dispensers, mining fuel dispensers, LPG dispensers, gas station management systems and related parts.";
-    public static final String ABOUT_ZH = "辉县市正和机械设备有限公司是专业的中国制造商，拥有 17 年行业经验，生产并批发加油机、矿用加油机、LPG 加气机、加油站管理系统及相关配件。";
+    public static final String ABOUT_EN = "Introduce your company, factory and export markets here. Replace this starter copy in the page editor.";
+    public static final String ABOUT_ZH = "在此介绍公司、工厂与出口市场。可在页面编辑器中替换这段示例文案。";
 
     private SiteTemplateCatalog() {
     }
@@ -94,187 +94,227 @@ public final class SiteTemplateCatalog {
         brand.put("font", tpl.get("font"));
         brand.put("heroLayout", tpl.get("heroLayout"));
         if (isBlank(brand.get("logoText"))) {
-            brand.put("logoText", "ZhengHe");
+            brand.put("logoText", "");
         }
         if (isBlank(brand.get("tagline"))) {
             brand.put("tagline", tpl.get("pitch"));
+        }
+        if (isBlank(brand.get("catalogTitle"))) {
+            brand.put("catalogTitle", "Products");
+        }
+        if (isBlank(brand.get("catalogLead"))) {
+            brand.put("catalogLead", "Browse the catalog and request a quotation.");
+        }
+        if (isBlank(brand.get("inquiryLead"))) {
+            brand.put("inquiryLead", "Tell us quantity, destination and key specifications.");
+        }
+        if (isBlank(brand.get("stickyHint"))) {
+            brand.put("stickyHint", "Need a quotation?");
+        }
+        if (!(brand.get("inquiryHints") instanceof List<?>)) {
+            brand.put("inquiryHints", List.of(
+                    "Quantity and destination",
+                    "Key specifications or drawings",
+                    "OEM / private label if needed"));
+        }
+        if (!(brand.get("inquiryFields") instanceof List<?>)) {
+            brand.put("inquiryFields", List.of(
+                    field("specs", "Key specifications", "关键规格", "text", "Size, material, voltage…"),
+                    field("port", "Destination port", "目的港", "text", "e.g. Lagos, Karachi"),
+                    field("incoterm", "Trade terms", "贸易条款", "select", "", List.of("FOB", "CIF", "CFR", "EXW", "DDP"))
+            ));
+        }
+        if (!(brand.get("navShow") instanceof Map<?, ?>)) {
+            brand.put("navShow", Map.of(
+                    "products", true,
+                    "solutions", false,
+                    "factory", false,
+                    "about", true,
+                    "blog", true,
+                    "contact", true
+            ));
         }
         return brand;
     }
 
     public static List<PageSeed> pages(String id) {
+        return pages(id, null);
+    }
+
+    public static List<PageSeed> pages(String id, String companyName) {
         Map<String, Object> tpl = def(id);
         String layout = String.valueOf(tpl.get("heroLayout"));
         String hero = String.valueOf(tpl.get("heroImage"));
-        List<PageSeed> list = new ArrayList<>(homePages(normalize(id), layout, hero));
-        list.addAll(sharedPages(layout, hero));
+        String name = isBlank(companyName) ? "Your company" : companyName;
+        List<PageSeed> list = new ArrayList<>(homePages(normalize(id), layout, hero, name));
+        list.addAll(sharedPages(layout, hero, name));
         return list;
     }
 
     public record PageSeed(String slug, String type, String enTitle, String zhTitle, List<?> enBlocks, List<?> zhBlocks) {
     }
 
-    private static List<PageSeed> homePages(String id, String layout, String hero) {
+    private static List<PageSeed> homePages(String id, String layout, String hero, String name) {
         return switch (id) {
             case "blueprint" -> List.of(new PageSeed("home", "home",
-                    "Fuel dispenser specs | ZhengHe", "加油机参数 | 正和机械",
+                    name + " | Specs & catalog", name + " | 参数目录",
                     List.of(
-                            trust("±0.25%", "5–80 L/min", "110/220/380V", "GPRS option"),
-                            hero(layout, hero, "Specify voltage, nozzles and protocol first",
-                                    "Honesty / Intelligent / Elite island units. Henan OEM, 17 years.",
-                                    "Request datasheet", "/inquiry"),
-                            solutions("Series map", solutionsEn()),
-                            products("Core island models"),
+                            trust("OEM / ODM", "MOQ ready", "Datasheet on request", "Export packing"),
+                            hero(layout, hero, "Lead with specifications buyers need",
+                                    name + " — a spec-first catalog for OEM and wholesale inquiries.",
+                                    "Request a quote", "/inquiry"),
+                            solutions("Applications", solutionsEn()),
+                            products("Featured products"),
                             factory("Factory capability", ABOUT_EN),
                             faq(faqEn()),
-                            cta("Send voltage, hose count and destination port", "Talk to Cathy")
+                            cta("Send quantity, specs and destination port", "Get a Quote")
                     ),
                     List.of(
-                            trust("±0.25%", "5–80 L/min", "110/220/380V", "可选 GPRS"),
-                            hero(layout, hero, "先确认电压、枪数与协议",
-                                    "诚信 / 智能 / 精英岛式机。河南 OEM，17 年。",
-                                    "索取样册", "/inquiry"),
-                            solutions("系列对照", solutionsZh()),
-                            products("主力岛式机"),
+                            trust("OEM / ODM", "支持起订量", "可提供参数表", "出口包装"),
+                            hero(layout, hero, "把买家关心的参数放在最前面",
+                                    name + " — 面向 OEM 与批发询盘的参数型目录。",
+                                    "获取报价", "/inquiry"),
+                            solutions("应用场景", solutionsZh()),
+                            products("精选商品"),
                             factory("工厂能力", ABOUT_ZH),
                             faq(faqZh()),
-                            cta("请提供电压、枪数与目的港", "联系 Cathy")
+                            cta("请提供数量、规格与目的港", "获取报价")
                     )));
             case "catalog" -> List.of(new PageSeed("home", "home",
-                    "Fuel dispenser catalog | ZhengHe", "加油机目录 | 正和机械",
+                    name + " | Product catalog", name + " | 商品目录",
                     List.of(
-                            hero(layout, hero, "Browse island dispensers and mini stations",
-                                    "Clean catalog for importers comparing Honesty to Prestige-V.",
+                            hero(layout, hero, "Browse the catalog, then request a quote",
+                                    "A clean product-first storefront for importers comparing SKUs.",
                                     "View products", "/products"),
-                            products("Featured models"),
+                            products("Featured products"),
                             solutions("Shop by use case", solutionsEn()),
                             blog("Buying notes"),
                             factory("Who we are", ABOUT_EN),
                             cta("Need a quotation pack?", "Get a Quote")
                     ),
                     List.of(
-                            hero(layout, hero, "浏览岛式加油机与微型站",
-                                    "目录型站点，方便进口商对比诚信到尊享-V。",
+                            hero(layout, hero, "先看目录，再提交询盘",
+                                    "浅色目录站，方便进口商对比 SKU。",
                                     "查看商品", "/products"),
-                            products("精选机型"),
+                            products("精选商品"),
                             solutions("按场景选购", solutionsZh()),
                             blog("采购说明"),
                             factory("厂家介绍", ABOUT_ZH),
-                            cta("需要报价包？", "获取报价")
+                            cta("需要报价资料？", "获取报价")
                     )));
             case "midnight" -> List.of(new PageSeed("home", "home",
-                    "ZhengHe OEM fuel dispensers", "正和 OEM 加油机",
+                    name + " | Export brand", name + " | 出口品牌",
                     List.of(
-                            hero(layout, hero, "OEM fascia. Export voltage. Quiet accuracy.",
-                                    "Aurora and Brilliance series for branded station networks.",
+                            hero(layout, hero, "Your brand. Your catalog. Your OEM story.",
+                                    name + " — a dark luxury skin for high-end export branding.",
                                     "Start OEM brief", "/inquiry"),
-                            products("Flagship series"),
-                            factory("Henan manufacturer", ABOUT_EN),
+                            products("Flagship products"),
+                            factory("Manufacturer profile", ABOUT_EN),
                             faq(faqEn()),
-                            cta("Logo, color and protocol can be frozen on a sample", "Contact Cathy")
+                            cta("Logo, color and packing can be confirmed on a sample", "Contact us")
                     ),
                     List.of(
-                            hero(layout, hero, "OEM 面板 · 出口电压 · 稳定计量",
-                                    "极光与辉煌系列，面向品牌油站网络。",
+                            hero(layout, hero, "品牌、目录与 OEM 故事",
+                                    name + " — 深色金点皮肤，适合高端出口品牌。",
                                     "提交 OEM 需求", "/inquiry"),
-                            products("旗舰系列"),
-                            factory("河南厂家", ABOUT_ZH),
+                            products("旗舰商品"),
+                            factory("厂家介绍", ABOUT_ZH),
                             faq(faqZh()),
-                            cta("Logo、颜色与协议可在样机上锁定", "联系 Cathy")
+                            cta("Logo、颜色与包装可在样品上确认", "联系我们")
                     )));
             case "signal" -> List.of(new PageSeed("home", "home",
-                    "Mining & depot fueling | ZhengHe", "矿山与车场加油 | 正和机械",
+                    name + " | Industrial catalog", name + " | 工业目录",
                     List.of(
-                            hero(layout, hero, "Compact pumps and 300–6000L mini stations",
-                                    "Honesty 1–2 nozzle units and Prestige-V for mines, yards and camps.",
+                            hero(layout, hero, "High-contrast catalog for B2B buyers",
+                                    name + " — built for depots, projects and wholesale orders.",
                                     "Get a Quote", "/inquiry"),
-                            trust("1–2 nozzles", "300–6000L", "DC / AC", "ATG / GPRS"),
-                            products("Depot and mining models"),
-                            cta("Tell us tank size, fuel type and site power", "Email Cathy"),
+                            trust("OEM", "Project orders", "Export packing", "Fast RFQ"),
+                            products("Featured products"),
+                            cta("Tell us quantity, specs and destination", "Get a Quote"),
                             solutions("Where it works", solutionsEn()),
                             faq(faqEn())
                     ),
                     List.of(
-                            hero(layout, hero, "紧凑加油机与 300–6000L 微型站",
-                                    "诚信 1–2 枪与尊享-V，服务矿山、车场与营地。",
+                            hero(layout, hero, "高对比目录，方便 B2B 买家下单",
+                                    name + " — 适合工程、批发与出口询盘。",
                                     "获取报价", "/inquiry"),
-                            trust("1–2 枪", "300–6000L", "DC / AC", "液位 / GPRS"),
-                            products("车场与矿山机型"),
-                            cta("请说明罐容、油品与现场电源", "联系 Cathy"),
+                            trust("OEM", "工程订单", "出口包装", "快速询盘"),
+                            products("精选商品"),
+                            cta("请说明数量、规格与目的地", "获取报价"),
                             solutions("适用场景", solutionsZh()),
                             faq(faqZh())
                     )));
             default -> List.of(new PageSeed("home", "home",
-                    "ZhengHe | Fuel Dispenser Manufacturer", "正和机械 | 加油机厂家",
+                    name + " | Manufacturer", name + " | 厂家独立站",
                     List.of(
-                            hero(layout, hero, "Fuel dispensers for gas stations, mines and fleets",
-                                    "Huixian Zhenghe Machinery · 17 years · 1–6 nozzles · optional GPRS · 110/220/380V",
+                            hero(layout, hero, "Your independent catalog for global buyers",
+                                    name + " — publish categories, products and RFQ from one admin.",
                                     "Get a Quote", "/inquiry"),
-                            trust("17 years", "1–6 nozzles", "Optional GPRS", "110/220/380V"),
-                            products("Honesty · Intelligent · Elite · Aurora · Prestige-V"),
+                            trust("OEM / ODM", "Multi-category", "On / off shelf", "Inquiry CRM"),
+                            products("Featured products"),
                             solutions("What we supply", solutionsEn()),
-                            factory("About ZhengHe", ABOUT_EN),
+                            factory("About the factory", ABOUT_EN),
                             faq(faqEn()),
-                            blog("Fuel dispenser buying notes"),
-                            cta("Need 2–6 nozzle 220V/380V units or a 3000L mini station?", "Email Cathy")
+                            blog("Buyer notes"),
+                            cta("Ready to quote? Send quantity and key specs.", "Get a Quote")
                     ),
                     List.of(
-                            hero(layout, hero, "加油站、矿山与车队加油设备",
-                                    "辉县正和机械 · 17 年经验 · 1–6 枪 · 可选 GPRS · 110/220/380V",
+                            hero(layout, hero, "面向全球买家的独立站目录",
+                                    name + " — 在一个后台发布类目、商品与询盘。",
                                     "获取报价", "/inquiry"),
-                            trust("17 年经验", "1–6 枪可选", "可选 GPRS", "110/220/380V"),
-                            products("诚信 · 智能 · 精英 · 极光 · 尊享-V"),
+                            trust("OEM / ODM", "多类目", "上下架", "询盘跟进"),
+                            products("精选商品"),
                             solutions("主要产品", solutionsZh()),
-                            factory("关于正和", ABOUT_ZH),
+                            factory("工厂介绍", ABOUT_ZH),
                             faq(faqZh()),
-                            blog("加油机采购说明"),
-                            cta("需要 2–6 枪 220V/380V 整机或 3000L 微型站？", "联系 Cathy")
+                            blog("采购说明"),
+                            cta("准备询价？请告知数量与关键规格。", "获取报价")
                     )));
         };
     }
 
-    private static List<PageSeed> sharedPages(String layout, String hero) {
+    private static List<PageSeed> sharedPages(String layout, String hero, String name) {
         return List.of(
-                new PageSeed("about", "about", "About ZhengHe Machinery", "关于正和机械",
+                new PageSeed("about", "about", "About " + name, "关于" + name,
                         List.of(
-                                hero(layout, img("about.jpg"), "17 years in petroleum equipment", ABOUT_EN, "Contact Us", "/contact"),
-                                rich("<p>" + ABOUT_EN + "</p><p>Factory: 50 Meters West Of Hanying Village, Zhaogu Township, Xinxiang, Henan. Cathy@machineryzh.com · +86 18567535165.</p>"),
-                                factory("Xinxiang, Henan OEM factory", "Fuel dispensers, mining units, LPG dispensers and parts.")
+                                hero(layout, img("about.jpg"), "About " + name, ABOUT_EN, "Contact Us", "/contact"),
+                                rich("<p>" + ABOUT_EN + "</p><p>Edit address, email and factory story in Brand and this page.</p>"),
+                                factory("Factory profile", "Describe capability, QC and export markets.")
                         ),
                         List.of(
-                                hero(layout, img("about.jpg"), "深耕石油设备 17 年", ABOUT_ZH, "联系我们", "/contact"),
-                                rich("<p>" + ABOUT_ZH + "</p><p>工厂：河南省新乡市赵固乡韩营村西 50 米。Cathy@machineryzh.com · +86 18567535165。</p>"),
-                                factory("河南新乡 OEM 工厂", "加油机、矿用机、LPG 加气机与配件。")
+                                hero(layout, img("about.jpg"), "关于" + name, ABOUT_ZH, "联系我们", "/contact"),
+                                rich("<p>" + ABOUT_ZH + "</p><p>请在「品牌装修」和本页补充地址、邮箱与工厂介绍。</p>"),
+                                factory("工厂介绍", "补充产能、质检与出口市场。")
                         )),
                 new PageSeed("factory", "factory", "Factory & Capability", "工厂与产能",
                         List.of(
-                                hero(layout, img("about.jpg"), "Henan manufacturer for global stations", "", "Get a Quote", "/inquiry"),
-                                factory("From island dispensers to mini stations",
-                                        "Honesty compact pumps, Aurora/Brilliance multi-nozzle islands, Prestige 300–6000L stations.")
+                                hero(layout, img("about.jpg"), "Manufacturing for export buyers", "", "Get a Quote", "/inquiry"),
+                                factory("From production to packing",
+                                        "Describe lines, inspection and container loading. Replace this starter copy.")
                         ),
                         List.of(
-                                hero(layout, img("about.jpg"), "面向全球加油站的河南厂家", "", "获取报价", "/inquiry"),
-                                factory("从岛式机到微型站", "紧凑诚信系列、极光/辉煌多枪机、尊享 300–6000L 微型站。")
+                                hero(layout, img("about.jpg"), "面向出口买家的制造能力", "", "获取报价", "/inquiry"),
+                                factory("从生产到包装", "补充产线、检验与装柜说明，可替换这段示例文案。")
                         )),
                 new PageSeed("certificates", "certificates", "Certificates", "资质证书",
-                        List.of(Map.of("type", "certificates", "props", Map.of("heading", "Quality & explosion-proof options",
-                                "items", List.of("OEM / ODM", "110 / 220 / 380V", "Ex-proof motor", "GPRS option")))),
-                        List.of(Map.of("type", "certificates", "props", Map.of("heading", "品质与防爆配置",
-                                "items", List.of("OEM / ODM", "110 / 220 / 380V", "防爆电机", "可选 GPRS"))))),
+                        List.of(Map.of("type", "certificates", "props", Map.of("heading", "Certificates & options",
+                                "items", List.of("ISO 9001", "OEM / ODM", "Third-party test", "Export packing")))),
+                        List.of(Map.of("type", "certificates", "props", Map.of("heading", "证书与配置",
+                                "items", List.of("ISO 9001", "OEM / ODM", "第三方检测", "出口包装"))))),
                 new PageSeed("faq", "faq", "FAQ", "常见问题",
                         List.of(faq(faqEn())), List.of(faq(faqZh()))),
                 new PageSeed("contact", "contact", "Contact Us", "联系我们",
                         List.of(
-                                hero(layout, img("station.png"), "Talk to Cathy", "+86 18567535165 · Cathy@machineryzh.com · Xinxiang, Henan", "Send inquiry", "/inquiry"),
-                                Map.of("type", "inquiryForm", "props", Map.of("title", "Tell us voltage, nozzle count, fuel type and destination port"))
+                                hero(layout, img("station.png"), "Talk to sales", "Use Brand settings for email, phone and WhatsApp.", "Send inquiry", "/inquiry"),
+                                Map.of("type", "inquiryForm", "props", Map.of("title", "Tell us quantity, specs and destination"))
                         ),
                         List.of(
-                                hero(layout, img("station.png"), "联系 Cathy", "+86 18567535165 · Cathy@machineryzh.com · 河南新乡", "提交询盘", "/inquiry"),
-                                Map.of("type", "inquiryForm", "props", Map.of("title", "请告知电压、枪数、油品与目的港"))
+                                hero(layout, img("station.png"), "联系销售", "邮箱、电话与 WhatsApp 在「品牌装修」中填写。", "提交询盘", "/inquiry"),
+                                Map.of("type", "inquiryForm", "props", Map.of("title", "请告知数量、规格与目的地"))
                         )),
                 new PageSeed("solutions", "solutions", "Solutions", "解决方案",
-                        List.of(solutions("Equipment for stations, mines and fleets", solutionsEn())),
-                        List.of(solutions("面向加油站、矿山与车队", solutionsZh())))
+                        List.of(solutions("Applications we support", solutionsEn())),
+                        List.of(solutions("可服务的场景", solutionsZh())))
         );
     }
 
@@ -342,38 +382,55 @@ public final class SiteTemplateCatalog {
 
     private static List<Map<String, String>> solutionsEn() {
         return List.of(
-                Map.of("slug", "fuel-dispensers", "title", "Fuel dispensers", "text", "Honesty to Brilliance island pumps, 1–8 nozzles."),
-                Map.of("slug", "gas-station-equipment", "title", "Gas station equipment", "text", "110/220/380V packages for daily station service."),
-                Map.of("slug", "mining", "title", "Mining & mobile", "text", "Honesty compact units and Prestige mini stations."),
-                Map.of("slug", "parts", "title", "Nozzles & parts", "text", "11A automatic nozzles, solenoid valves and motors.")
+                Map.of("slug", "wholesale", "title", "Wholesale catalog", "text", "Publish categories and SKUs for importers to browse."),
+                Map.of("slug", "oem", "title", "OEM / private label", "text", "Logo, packing and spec sheets confirmed before mass production."),
+                Map.of("slug", "projects", "title", "Project orders", "text", "Quote by quantity, destination and delivery window."),
+                Map.of("slug", "parts", "title", "Parts & accessories", "text", "Related items can sit in their own category.")
         );
     }
 
     private static List<Map<String, String>> solutionsZh() {
         return List.of(
-                Map.of("slug", "fuel-dispensers", "title", "加油机", "text", "诚信至辉煌岛式机，1–8 枪可选。"),
-                Map.of("slug", "gas-station-equipment", "title", "加油站设备", "text", "110/220/380V 整机，适合长期运营。"),
-                Map.of("slug", "mining", "title", "矿山与移动加注", "text", "紧凑诚信系列与尊享微型站。"),
-                Map.of("slug", "parts", "title", "油枪与配件", "text", "11A 自封油枪、电磁阀与电机。")
+                Map.of("slug", "wholesale", "title", "批发目录", "text", "发布类目与 SKU，方便进口商浏览。"),
+                Map.of("slug", "oem", "title", "OEM / 贴牌", "text", "量产前确认 Logo、包装与参数表。"),
+                Map.of("slug", "projects", "title", "工程订单", "text", "按数量、目的地与交期报价。"),
+                Map.of("slug", "parts", "title", "配件", "text", "相关商品可单独建分类。")
         );
     }
 
     private static List<Map<String, String>> faqEn() {
         return List.of(
-                Map.of("q", "How many nozzles can I order?", "a", "Island series typically 1–6 nozzles (Aurora/Brilliance up to 8). Mini stations support 1–3 products."),
-                Map.of("q", "Can GPRS be added?", "a", "Yes. Intelligent, Clever, Aurora, Brilliance and Prestige series can add GPRS."),
-                Map.of("q", "Which voltages are available?", "a", "110V, 220V and 380V, 50/60Hz."),
-                Map.of("q", "How do I contact the factory?", "a", "Cathy@machineryzh.com or +86 18567535165.")
+                Map.of("q", "Can I order OEM / private label?", "a", "Yes. Confirm logo, packing and MOQ in the inquiry."),
+                Map.of("q", "What should I include in an RFQ?", "a", "Quantity, destination port, key specs or drawings, and preferred Incoterms."),
+                Map.of("q", "Do you support multiple product categories?", "a", "Yes. Create categories in admin, then list or unlist products per site."),
+                Map.of("q", "How do I contact sales?", "a", "Use the inquiry form, or the email and WhatsApp in the site header.")
         );
     }
 
     private static List<Map<String, String>> faqZh() {
         return List.of(
-                Map.of("q", "最多几枪？", "a", "岛式机常见 1–6 枪（极光/辉煌可达 8 枪）。微型站支持 1–3 个油品。"),
-                Map.of("q", "能否加装 GPRS？", "a", "可以。智能、灵巧、极光、辉煌与尊享系列均可选 GPRS。"),
-                Map.of("q", "电压有哪些？", "a", "110V、220V、380V，50/60Hz。"),
-                Map.of("q", "如何联系工厂？", "a", "Cathy@machineryzh.com 或 +86 18567535165。")
+                Map.of("q", "能否 OEM / 贴牌？", "a", "可以。请在询盘中确认 Logo、包装与起订量。"),
+                Map.of("q", "询盘需要提供什么？", "a", "数量、目的港、关键规格或图纸，以及偏好的贸易条款。"),
+                Map.of("q", "能否做多类目？", "a", "可以。在后台创建分类，再按站点上下架或隐藏商品。"),
+                Map.of("q", "如何联系销售？", "a", "使用询盘表单，或页头中的邮箱与 WhatsApp。")
         );
+    }
+
+    private static Map<String, Object> field(String key, String label, String labelZh, String type, String placeholder) {
+        return field(key, label, labelZh, type, placeholder, List.of());
+    }
+
+    private static Map<String, Object> field(String key, String label, String labelZh, String type, String placeholder, List<String> options) {
+        Map<String, Object> map = new LinkedHashMap<>();
+        map.put("key", key);
+        map.put("label", label);
+        map.put("labelZh", labelZh);
+        map.put("type", type);
+        map.put("placeholder", placeholder);
+        if (options != null && !options.isEmpty()) {
+            map.put("options", options);
+        }
+        return map;
     }
 
     private static boolean isBlank(Object value) {

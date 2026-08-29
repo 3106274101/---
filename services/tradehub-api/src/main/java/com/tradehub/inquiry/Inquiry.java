@@ -30,6 +30,7 @@ public class Inquiry {
     private String whatsapp;
     private String quantity;
     private String message;
+    private String extraJson;
     private String honeypot;
     private String utmJson;
     private String status;
