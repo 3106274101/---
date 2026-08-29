@@ -117,9 +117,21 @@
             </el-form-item>
             <el-form-item v-if="current.type === 'solutions'" label="场景">
               <div v-for="(s, i) in current.props.items" :key="i" class="mini-card">
-                <el-input v-model="s.title" placeholder="标题" />
+                <el-input v-model="s.slug" placeholder="slug，如 gas-station" />
+                <el-input v-model="s.title" placeholder="标题" style="margin-top:6px" />
                 <el-input v-model="s.text" placeholder="说明" style="margin-top:6px" />
               </div>
+            </el-form-item>
+            <el-form-item v-if="current.type === 'testimonials'" label="评价">
+              <div v-for="(t, i) in current.props.items" :key="i" class="mini-card">
+                <el-input v-model="t.quote" placeholder="原话" type="textarea" :rows="2" />
+                <el-input v-model="t.name" placeholder="身份" style="margin-top:6px" />
+                <el-input v-model="t.country" placeholder="国家" style="margin-top:6px" />
+              </div>
+              <el-button size="small" @click="current.props.items.push({ quote: '', name: '', country: '' })">加一条</el-button>
+            </el-form-item>
+            <el-form-item v-if="current.type === 'logoWall'" label="市场/品牌">
+              <el-input v-model="logoText" type="textarea" :rows="3" @blur="syncLogo" />
             </el-form-item>
             <el-form-item v-if="current.type === 'specTable'" label="对照行">
               <div v-for="(r, i) in current.props.rows" :key="i" class="mini-card">
@@ -167,6 +179,7 @@ const articles = ref<any[]>([])
 const catalog = BLOCK_CATALOG
 const trustText = ref('')
 const certText = ref('')
+const logoText = ref('')
 const insertPointer = ref<number | null>(null)
 
 const current = computed(() => page.value?.blocks?.[selected.value] || null)
@@ -225,9 +238,13 @@ function syncTrust() {
 function syncCert() {
   current.value.props.items = certText.value.split('\n').map((s) => s.trim()).filter(Boolean)
 }
+function syncLogo() {
+  current.value.props.items = logoText.value.split('\n').map((s) => s.trim()).filter(Boolean)
+}
 function syncSideTexts() {
   if (current.value?.type === 'trustBar') trustText.value = (current.value.props.items || []).join('\n')
   if (current.value?.type === 'certificates') certText.value = (current.value.props.items || []).join('\n')
+  if (current.value?.type === 'logoWall') logoText.value = (current.value.props.items || []).join('\n')
 }
 async function save() {
   saving.value = true

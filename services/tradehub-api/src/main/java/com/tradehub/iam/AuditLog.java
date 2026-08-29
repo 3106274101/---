@@ -1,6 +1,7 @@
 package com.tradehub.iam;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
@@ -19,4 +20,7 @@ public class AuditLog {
     private String targetId;
     private String detailJson;
     private LocalDateTime createdAt;
+
+    @TableField(exist = false)
+    private String userName;
 }

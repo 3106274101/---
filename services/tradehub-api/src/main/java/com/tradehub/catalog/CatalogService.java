@@ -140,9 +140,13 @@ public class CatalogService {
                 rel.setTenantId(tenantId);
                 rel.setProductId(product.getId());
                 rel.setSiteId(req.getSiteId());
-                rel.setVisible(1);
-                rel.setSortOrder(product.getSortOrder());
+            }
+            rel.setVisible(req.getSiteVisible() == null || Boolean.TRUE.equals(req.getSiteVisible()) ? 1 : 0);
+            rel.setSortOrder(product.getSortOrder());
+            if (rel.getId() == null) {
                 productSiteMapper.insert(rel);
+            } else {
+                productSiteMapper.updateById(rel);
             }
         }
         return productView(product, locale, true);
@@ -267,6 +271,14 @@ public class CatalogService {
         map.put("sortOrder", product.getSortOrder());
         map.put("publishedAt", product.getPublishedAt());
         map.put("scheduledAt", product.getScheduledAt());
+        if (TenantContext.getSiteId() != null) {
+            ProductSite rel = productSiteMapper.selectOne(new LambdaQueryWrapper<ProductSite>()
+                    .eq(ProductSite::getProductId, product.getId())
+                    .eq(ProductSite::getSiteId, TenantContext.getSiteId()));
+            map.put("siteVisible", rel == null || Integer.valueOf(1).equals(rel.getVisible()));
+        } else {
+            map.put("siteVisible", true);
+        }
         if (i18n != null) {
             map.put("name", i18n.getName());
             map.put("summary", i18n.getSummary());
@@ -314,10 +326,41 @@ public class CatalogService {
     }
 
     public List<Product> liveProducts(Long tenantId) {
-        return productMapper.selectList(new LambdaQueryWrapper<Product>()
+        return liveProducts(tenantId, null);
+    }
+
+    public List<Product> liveProducts(Long tenantId, Long siteId) {
+        List<Product> live = productMapper.selectList(new LambdaQueryWrapper<Product>()
                 .eq(Product::getTenantId, tenantId)
                 .eq(Product::getStatus, "live")
                 .orderByAsc(Product::getSortOrder));
+        if (siteId == null) {
+            return live;
+        }
+        List<ProductSite> rels = productSiteMapper.selectList(new LambdaQueryWrapper<ProductSite>()
+                .eq(ProductSite::getSiteId, siteId));
+        if (rels.isEmpty()) {
+            return live;
+        }
+        Map<Long, ProductSite> byProduct = rels.stream().collect(Collectors.toMap(ProductSite::getProductId, r -> r, (a, b) -> a));
+        return live.stream().filter(p -> {
+            ProductSite rel = byProduct.get(p.getId());
+            return rel == null || Integer.valueOf(1).equals(rel.getVisible());
+        }).toList();
+    }
+
+    public void deleteCategory(Long id) {
+        Category cat = categoryMapper.selectById(id);
+        if (cat == null || !cat.getTenantId().equals(tenantService.workingTenantId())) {
+            throw new BizException(404, "category not found");
+        }
+        long used = productMapper.selectCount(new LambdaQueryWrapper<Product>()
+                .eq(Product::getTenantId, cat.getTenantId())
+                .eq(Product::getCategoryId, id));
+        if (used > 0) {
+            throw new BizException(422, "category in use by " + used + " products");
+        }
+        categoryMapper.deleteById(id);
     }
 
     private Map<String, Object> categoryView(Category cat, String locale, List<CategoryI18n> translations) {
@@ -433,5 +476,6 @@ public class CatalogService {
         private String content;
         private String seoTitle;
         private String seoDescription;
+        private Boolean siteVisible;
     }
 }

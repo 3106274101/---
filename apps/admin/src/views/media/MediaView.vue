@@ -16,6 +16,7 @@
         <div v-else style="height:110px;display:grid;place-items:center;background:#f4f6f8">PDF</div>
         <p style="margin:8px 0 4px">{{ item.originalName }}</p>
         <el-button size="small" text @click="copy(item.url)">复制 URL</el-button>
+        <el-button size="small" text type="danger" @click="remove(item)">删除</el-button>
       </div>
     </div>
   </div>
@@ -41,6 +42,10 @@ async function upload(opt: any) {
 async function copy(url: string) {
   await navigator.clipboard.writeText(url)
   ElMessage.success('已复制')
+}
+async function remove(item: any) {
+  await http.delete('/admin/media/' + item.id)
+  load()
 }
 onMounted(load)
 </script>

@@ -102,7 +102,20 @@ public class InquiryService {
         }
         int from = (int) Math.max(0, (page - 1) * size);
         int to = (int) Math.min(all.size(), from + size);
-        return new PageResult<>(from < to ? all.subList(from, to) : java.util.List.of(), all.size(), page, size);
+        List<Inquiry> slice = from < to ? all.subList(from, to) : java.util.List.of();
+        java.util.Map<String, Long> emailHits = inquiryMapper.selectList(new LambdaQueryWrapper<Inquiry>()
+                        .eq(Inquiry::getTenantId, tenantId))
+                .stream()
+                .filter(row -> StringUtils.hasText(row.getEmail()))
+                .collect(java.util.stream.Collectors.groupingBy(row -> row.getEmail().toLowerCase(), java.util.stream.Collectors.counting()));
+        for (Inquiry row : slice) {
+            if (StringUtils.hasText(row.getEmail())) {
+                row.setRepeatCount(emailHits.getOrDefault(row.getEmail().toLowerCase(), 1L).intValue());
+            } else {
+                row.setRepeatCount(1);
+            }
+        }
+        return new PageResult<>(slice, all.size(), page, size);
     }
 
     private String blob(Inquiry row) {
@@ -196,11 +209,13 @@ public class InquiryService {
     public String exportCsv(String status) {
         List<Inquiry> list = adminList(status, 1, 10_000).getList();
         StringBuilder sb = new StringBuilder();
-        sb.append("id,createdAt,status,name,company,email,phone,country,whatsapp,product,quantity,message\n");
+        sb.append("id,createdAt,status,source,starred,name,company,email,phone,country,whatsapp,product,quantity,utm,message\n");
         for (Inquiry row : list) {
             sb.append(csv(row.getId())).append(',')
                     .append(csv(row.getCreatedAt())).append(',')
                     .append(csv(row.getStatus())).append(',')
+                    .append(csv(row.getSource())).append(',')
+                    .append(csv(row.getStarred())).append(',')
                     .append(csv(row.getName())).append(',')
                     .append(csv(row.getCompany())).append(',')
                     .append(csv(row.getEmail())).append(',')
@@ -209,6 +224,7 @@ public class InquiryService {
                     .append(csv(row.getWhatsapp())).append(',')
                     .append(csv(row.getProductName())).append(',')
                     .append(csv(row.getQuantity())).append(',')
+                    .append(csv(row.getUtmJson())).append(',')
                     .append(csv(row.getMessage()))
                     .append('\n');
         }
@@ -234,6 +250,21 @@ public class InquiryService {
 
     public long countAll(Long tenantId) {
         return inquiryMapper.selectCount(new LambdaQueryWrapper<Inquiry>().eq(Inquiry::getTenantId, tenantId));
+    }
+
+    public Map<String, Long> funnel(Long tenantId) {
+        List<Inquiry> all = inquiryMapper.selectList(new LambdaQueryWrapper<Inquiry>().eq(Inquiry::getTenantId, tenantId));
+        Map<String, Long> out = new java.util.LinkedHashMap<>();
+        out.put("new", 0L);
+        out.put("following", 0L);
+        out.put("quoted", 0L);
+        out.put("lost", 0L);
+        for (Inquiry row : all) {
+            String key = row.getStatus() == null ? "new" : row.getStatus();
+            out.put(key, out.getOrDefault(key, 0L) + 1);
+        }
+        out.put("total", (long) all.size());
+        return out;
     }
 
     private String clientIp(HttpServletRequest request) {

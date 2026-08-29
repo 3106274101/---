@@ -13,7 +13,9 @@ import com.tradehub.tenant.Site;
 import com.tradehub.tenant.SiteMapper;
 import com.tradehub.tenant.TenantService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -53,16 +55,50 @@ public class SeoAdminController {
         return R.ok(body);
     }
 
+    @DeleteMapping("/redirects/{id}")
+    public R<?> remove(@PathVariable Long id) {
+        Redirect row = redirectMapper.selectById(id);
+        if (row == null || !row.getTenantId().equals(tenantService.workingTenantId())) {
+            return R.fail(404, "redirect not found");
+        }
+        redirectMapper.deleteById(id);
+        return R.ok();
+    }
+
+    private static final String DEFAULT_ROBOTS = """
+            User-agent: *
+            Allow: /
+            Disallow: /api/
+            Disallow: /admin
+            Sitemap: /sitemap.xml
+            """;
+
     @GetMapping("/robots")
-    public R<?> robots() {
-        String txt = """
-                User-agent: *
-                Allow: /
-                Disallow: /api/
-                Disallow: /admin
-                Sitemap: /sitemap.xml
-                """;
+    public R<?> robots(@RequestParam(required = false) Long siteId) {
+        Long id = siteId != null ? siteId : com.tradehub.common.tenant.TenantContext.getSiteId();
+        if (id == null) {
+            return R.ok(java.util.Map.of("content", DEFAULT_ROBOTS));
+        }
+        Site site = siteMapper.selectById(id);
+        var seo = site == null ? java.util.Map.<String, Object>of() : Jsons.map(site.getSeoJson());
+        String txt = String.valueOf(seo.getOrDefault("robotsTxt", DEFAULT_ROBOTS));
+        if (!org.springframework.util.StringUtils.hasText(txt) || "null".equals(txt)) {
+            txt = DEFAULT_ROBOTS;
+        }
         return R.ok(java.util.Map.of("content", txt));
+    }
+
+    @PostMapping("/robots")
+    public R<?> saveRobots(@RequestParam Long siteId, @RequestBody java.util.Map<String, String> body) {
+        Site site = siteMapper.selectById(siteId);
+        if (site == null || !site.getTenantId().equals(tenantService.workingTenantId())) {
+            return R.fail(404, "site not found");
+        }
+        java.util.Map<String, Object> seo = new java.util.HashMap<>(Jsons.map(site.getSeoJson()));
+        seo.put("robotsTxt", body.getOrDefault("content", DEFAULT_ROBOTS));
+        site.setSeoJson(Jsons.toJson(seo));
+        siteMapper.updateById(site);
+        return R.ok(java.util.Map.of("content", seo.get("robotsTxt")));
     }
 
     @GetMapping("/health")

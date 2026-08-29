@@ -21,7 +21,10 @@
       </div>
       <div class="panel">
         <div class="panel-h">robots.txt</div>
-        <pre class="code-box">{{ robots || '（暂无）' }}</pre>
+        <div class="panel-pad">
+          <el-input v-model="robots" type="textarea" :rows="8" />
+          <el-button size="small" style="margin-top:8px" type="primary" @click="saveRobots">保存 robots</el-button>
+        </div>
         <div class="panel-pad seo-links">
           <a :href="storePreview('/robots.txt')" target="_blank">打开 robots.txt</a>
           <a :href="storePreview('/sitemap.xml')" target="_blank">打开 sitemap.xml</a>
@@ -40,6 +43,11 @@
           <el-table-column prop="fromPath" label="From" />
           <el-table-column prop="toPath" label="To" />
           <el-table-column prop="code" label="Code" width="80" />
+          <el-table-column label="" width="80">
+            <template #default="{ row }">
+              <el-button size="small" text type="danger" @click="removeRedirect(row)">删除</el-button>
+            </template>
+          </el-table-column>
         </el-table>
       </div>
     </div>
@@ -48,6 +56,7 @@
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
+import { ElMessage } from 'element-plus'
 import http from '../../api/http'
 import { storePreview } from '../../config'
 
@@ -56,11 +65,21 @@ const redirects = ref<any[]>([])
 const health = ref<any>({ score: 0, issues: [] })
 const form = reactive({ fromPath: '', toPath: '', code: 301, siteId: Number(localStorage.getItem('th_site') || 1) })
 async function load() {
-  const r: any = await http.get('/admin/seo/robots')
+  form.siteId = Number(localStorage.getItem('th_site') || 1)
+  const r: any = await http.get('/admin/seo/robots', { params: { siteId: form.siteId } })
   robots.value = r.data?.content || ''
   const d: any = await http.get('/admin/seo/redirects', { params: { siteId: form.siteId } })
   redirects.value = d.data || []
   await loadHealth()
+}
+async function saveRobots() {
+  form.siteId = Number(localStorage.getItem('th_site') || 1)
+  await http.post('/admin/seo/robots', { content: robots.value }, { params: { siteId: form.siteId } })
+  ElMessage.success('robots.txt 已保存，独立站刷新后生效')
+}
+async function removeRedirect(row: any) {
+  await http.delete('/admin/seo/redirects/' + row.id)
+  load()
 }
 async function loadHealth() {
   form.siteId = Number(localStorage.getItem('th_site') || 1)

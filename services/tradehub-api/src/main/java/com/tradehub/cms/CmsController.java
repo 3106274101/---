@@ -3,6 +3,7 @@ package com.tradehub.cms;
 import com.tradehub.common.api.R;
 import com.tradehub.common.tenant.TenantContext;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -44,9 +45,21 @@ public class CmsController {
         return R.ok(cmsService.duplicatePage(id, TenantContext.getLocale()));
     }
 
+    @DeleteMapping("/pages/{id}")
+    public R<?> deletePage(@PathVariable Long id) {
+        cmsService.deletePage(id);
+        return R.ok();
+    }
+
     @PostMapping("/articles/{id}/duplicate")
     public R<?> duplicateArticle(@PathVariable Long id) {
         return R.ok(cmsService.duplicateArticle(id, TenantContext.getLocale()));
+    }
+
+    @DeleteMapping("/articles/{id}")
+    public R<?> deleteArticle(@PathVariable Long id) {
+        cmsService.deleteArticle(id);
+        return R.ok();
     }
 
     @GetMapping("/articles")

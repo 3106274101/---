@@ -57,6 +57,10 @@
       <el-form-item label="SEO Title"><el-input v-model="form.seoTitle" /></el-form-item>
       <el-form-item label="SEO Description"><el-input v-model="form.seoDescription" type="textarea" /></el-form-item>
       <el-form-item label="推荐"><el-switch v-model="form.featured" /></el-form-item>
+      <el-form-item label="本站展示">
+        <el-switch v-model="form.siteVisible" />
+        <div class="form-hint">关闭后，当前站点的独立站不显示该商品，其它站点不受影响。</div>
+      </el-form-item>
       <el-form-item>
         <el-button type="primary" @click="save">保存</el-button>
       </el-form-item>
@@ -82,7 +86,7 @@ const pickGallery = ref(false)
 const slugTouched = ref(false)
 const attrRows = ref<{ key: string; value: string }[]>([])
 const form = reactive<any>({
-  status: 'draft', featured: false, gallery: [], attrs: {}, siteId: Number(localStorage.getItem('th_site') || 1)
+  status: 'draft', featured: false, siteVisible: true, gallery: [], attrs: {}, siteId: Number(localStorage.getItem('th_site') || 1)
 })
 
 onMounted(async () => {

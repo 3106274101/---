@@ -66,6 +66,13 @@
         <div v-for="a in articles" :key="a.id" class="cv-card"><b>{{ a.title }}</b></div>
       </div>
     </div>
+    <div v-else-if="block.type === 'testimonials'" class="cv-pad cv-muted">
+      <h3>{{ block.props.heading }}</h3>
+      <p v-for="t in block.props.items" :key="t.name"><b>{{ t.name }}</b> {{ t.quote }}</p>
+    </div>
+    <div v-else-if="block.type === 'logoWall'" class="cv-trust">
+      <span v-for="item in block.props.items" :key="item">{{ item }}</span>
+    </div>
   </div>
 </template>
 

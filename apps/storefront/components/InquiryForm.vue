@@ -36,7 +36,14 @@ const form = reactive({
   message: qName ? `I am interested in ${qName}. Please quote voltage, hose count and destination port.` : '',
   website: '',
   productId: qId,
-  productName: qName
+  productName: qName,
+  utm: {
+    source: String(route.query.utm_source || ''),
+    medium: String(route.query.utm_medium || ''),
+    campaign: String(route.query.utm_campaign || ''),
+    content: String(route.query.utm_content || ''),
+    gclid: String(route.query.gclid || '')
+  }
 })
 
 async function submit() {
@@ -45,6 +52,12 @@ async function submit() {
   try {
     await post('/inquiries', form)
     done.value = true
+    try {
+      const gtag = (window as any).gtag
+      if (typeof gtag === 'function') {
+        gtag('event', 'generate_lead', { product: form.productName || '', country: form.country })
+      }
+    } catch { /* no analytics */ }
   } finally {
     loading.value = false
   }

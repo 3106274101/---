@@ -52,6 +52,9 @@
     <section class="main">
       <header class="top" v-if="!isBuilder">
         <div class="top-left">
+          <el-select v-if="auth.user?.superAdmin && tenants.length" v-model="tenantId" size="small" style="width: 160px" @change="onTenant">
+            <el-option v-for="t in tenants" :key="t.id" :label="t.name" :value="String(t.id)" />
+          </el-select>
           <el-select v-if="sites.length" v-model="siteId" size="small" style="width: 200px" @change="onSite">
             <el-option v-for="s in sites" :key="s.id" :label="s.name" :value="String(s.id)" />
           </el-select>
@@ -117,6 +120,8 @@ const auth = useAuthStore()
 const router = useRouter()
 const route = useRoute()
 const sites = ref<any[]>([])
+const tenants = ref<any[]>([])
+const tenantId = ref(localStorage.getItem('th_tenant') || '')
 const siteId = ref(localStorage.getItem('th_site') || '')
 const locale = ref(localStorage.getItem('th_locale') || 'en')
 const newInquiries = ref(0)
@@ -145,6 +150,14 @@ onMounted(async () => {
     localStorage.setItem('th_user', JSON.stringify(me.data))
   } catch {
     /* keep cached profile */
+  }
+  if (auth.user?.superAdmin) {
+    try {
+      const t: any = await http.get('/admin/tenants')
+      tenants.value = t.data || []
+    } catch {
+      tenants.value = []
+    }
   }
   const res: any = await http.get('/admin/sites')
   sites.value = res.data?.list || []
@@ -199,7 +212,7 @@ function goHit(kind: string, hit: any) {
   searchVisible.value = false
   if (kind === 'products') router.push('/products/' + hit.id)
   else if (kind === 'pages') router.push('/pages/' + hit.id)
-  else if (kind === 'articles') router.push('/articles')
+  else if (kind === 'articles') router.push({ path: '/articles', query: { edit: String(hit.id) } })
   else if (kind === 'inquiries') router.push('/inquiries')
   else router.push('/sites')
 }
@@ -216,6 +229,12 @@ function onSite(val: string) {
   localStorage.setItem('th_site', val)
   const current = sites.value.find((s: any) => String(s.id) === String(val))
   if (current?.code) localStorage.setItem('th_site_code', current.code)
+}
+function onTenant(val: string) {
+  localStorage.setItem('th_tenant', val)
+  localStorage.removeItem('th_site')
+  localStorage.removeItem('th_site_code')
+  location.reload()
 }
 function onLocale(val: string) {
   if (locale.value === val) return

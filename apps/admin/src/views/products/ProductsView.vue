@@ -55,11 +55,17 @@
         <el-table-column prop="name" label="名称" />
         <el-table-column prop="slug" label="Slug" />
         <el-table-column prop="status" label="状态" width="90" />
+        <el-table-column label="" width="140">
+          <template #default="{ row }">
+            <el-button size="small" text @click="editCat(row)">编辑</el-button>
+            <el-button size="small" text type="danger" @click="removeCat(row)">删除</el-button>
+          </template>
+        </el-table-column>
       </el-table>
       <el-form :inline="true" :model="catForm" style="margin-top:12px">
         <el-form-item label="名称"><el-input v-model="catForm.name" /></el-form-item>
         <el-form-item label="Slug"><el-input v-model="catForm.slug" /></el-form-item>
-        <el-form-item><el-button type="primary" @click="saveCat">新增分类</el-button></el-form-item>
+        <el-form-item><el-button type="primary" @click="saveCat">{{ catForm.id ? '保存分类' : '新增分类' }}</el-button></el-form-item>
       </el-form>
     </el-dialog>
   </div>
@@ -77,7 +83,7 @@ const keyword = ref('')
 const status = ref('')
 const catVisible = ref(false)
 const picked = ref<number[]>([])
-const catForm = reactive({ name: '', slug: '', status: 'live' })
+const catForm = reactive<any>({ name: '', slug: '', status: 'live' })
 const router = useRouter()
 
 async function load() {
@@ -117,8 +123,16 @@ async function exportCsv() {
 }
 async function saveCat() {
   await http.post('/admin/categories', catForm)
+  catForm.id = undefined
   catForm.name = ''
   catForm.slug = ''
+  loadCats()
+}
+function editCat(row: any) {
+  Object.assign(catForm, { id: row.id, name: row.name, slug: row.slug, status: row.status, sortOrder: row.sortOrder })
+}
+async function removeCat(row: any) {
+  await http.delete('/admin/categories/' + row.id)
   loadCats()
 }
 function statusLabel(status: string) {

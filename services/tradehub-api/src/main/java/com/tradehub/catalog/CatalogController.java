@@ -3,6 +3,7 @@ package com.tradehub.catalog;
 import com.tradehub.common.api.R;
 import com.tradehub.common.tenant.TenantContext;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,6 +27,12 @@ public class CatalogController {
     @PostMapping("/categories")
     public R<?> saveCategory(@RequestBody CatalogService.CategorySaveRequest req) {
         return R.ok(catalogService.saveCategory(req, TenantContext.getLocale()));
+    }
+
+    @DeleteMapping("/categories/{id}")
+    public R<?> deleteCategory(@PathVariable Long id) {
+        catalogService.deleteCategory(id);
+        return R.ok();
     }
 
     @GetMapping("/products")

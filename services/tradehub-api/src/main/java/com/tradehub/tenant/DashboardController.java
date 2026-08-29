@@ -40,6 +40,7 @@ public class DashboardController {
         data.put("missingCover", productMapper.selectList(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<Product>()
                         .eq(Product::getTenantId, tenantId)).stream()
                 .filter(p -> p.getCoverUrl() == null || p.getCoverUrl().isBlank()).count());
+        data.put("funnel", inquiryService.funnel(tenantId));
         return R.ok(data);
     }
 }

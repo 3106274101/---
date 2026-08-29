@@ -44,6 +44,10 @@
       </div>
       <div class="stat">
         <span class="stat-ico"><el-icon><Share /></el-icon></span>
+        <div><b>{{ (data.funnel && data.funnel.quoted) || 0 }}</b><span>已报价</span></div>
+      </div>
+      <div class="stat">
+        <span class="stat-ico"><el-icon><Share /></el-icon></span>
         <div><b>{{ data.languages || 0 }}</b><span>语言</span></div>
       </div>
     </div>

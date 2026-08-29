@@ -1,5 +1,6 @@
 <template>
-  <div class="wrap section">
+  <BlockRenderer v-if="page?.blocks" :blocks="page.blocks" />
+  <div v-else class="wrap section">
     <h1>Cases</h1>
     <p class="muted">ZhengHe equipment is supplied for petrol stations, mining fuel sites and compact yards. Typical packages match the series on this site.</p>
     <div class="grid-3 section">
@@ -25,5 +26,13 @@
   </div>
 </template>
 <script setup lang="ts">
-usePageSeo({ title: 'Cases | ZhengHe Machinery', description: 'ZhengHe fuel dispensers for stations, mines and export mini stations.', path: '/projects' })
+const { get } = useStoreApi()
+const { data: page } = await useAsyncData('projects', async () => {
+  try { return await get('/pages/projects') } catch { return null }
+})
+usePageSeo({
+  title: page.value?.seoTitle || 'Cases | ZhengHe Machinery',
+  description: page.value?.seoDescription || 'ZhengHe fuel dispensers for stations, mines and export mini stations.',
+  path: '/projects'
+})
 </script>

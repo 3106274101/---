@@ -66,7 +66,7 @@ public class StorefrontService {
             data.put("page", cmsService.pageView(page, locale));
         }
         List<Map<String, Object>> featured = new ArrayList<>();
-        for (Product product : catalogService.liveProducts(site.getTenantId())) {
+        for (Product product : catalogService.liveProducts(site.getTenantId(), site.getId())) {
             if (Integer.valueOf(1).equals(product.getFeatured())) {
                 featured.add(catalogService.productView(product, locale, false));
             }
@@ -104,7 +104,7 @@ public class StorefrontService {
         }
         Long categoryId = StringUtils.hasText(categorySlug) ? slugToId.get(categorySlug) : null;
         List<Map<String, Object>> result = new ArrayList<>();
-        for (Product product : catalogService.liveProducts(site.getTenantId())) {
+        for (Product product : catalogService.liveProducts(site.getTenantId(), site.getId())) {
             if (categoryId != null && !categoryId.equals(product.getCategoryId())) {
                 continue;
             }
@@ -114,7 +114,7 @@ public class StorefrontService {
     }
 
     public Map<String, Object> product(Site site, String locale, String slug) {
-        for (Product product : catalogService.liveProducts(site.getTenantId())) {
+        for (Product product : catalogService.liveProducts(site.getTenantId(), site.getId())) {
             var view = catalogService.productView(product, locale, false);
             if (slug.equals(view.get("slug")) || slug.equals(product.getSlug())) {
                 Map<String, Object> data = new HashMap<>(view);
@@ -122,7 +122,7 @@ public class StorefrontService {
                         .filter(c -> product.getCategoryId() != null && product.getCategoryId().equals(c.get("id")))
                         .findFirst().orElse(null));
                 List<Map<String, Object>> related = new ArrayList<>();
-                for (Product other : catalogService.liveProducts(site.getTenantId())) {
+                for (Product other : catalogService.liveProducts(site.getTenantId(), site.getId())) {
                     if (other.getId().equals(product.getId())) {
                         continue;
                     }

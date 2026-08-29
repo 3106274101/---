@@ -51,7 +51,7 @@
         <div class="wrap">
           <h2>{{ block.props.heading || 'Solutions' }}</h2>
           <div class="grid-3">
-            <NuxtLink v-for="s in block.props.items" :key="s.slug" :to="localePath('/solutions')" class="card">
+            <NuxtLink v-for="s in block.props.items" :key="s.slug" :to="localePath('/solutions/' + (s.slug || ''))" class="card">
               <div class="body">
                 <h3>{{ s.title }}</h3>
                 <p class="muted">{{ s.text }}</p>
@@ -117,7 +117,28 @@
         </div>
       </div>
 
-      <div v-else-if="block.type === 'blogTeaser'" class="section" style="background:var(--bg)">
+      <div v-else-if="block.type === 'testimonials'" class="section">
+        <div class="wrap">
+          <h2>{{ block.props.heading || 'Buyers say' }}</h2>
+          <div class="grid-3">
+            <article v-for="(t, i) in block.props.items" :key="i" class="card">
+              <div class="body">
+                <p>{{ t.quote }}</p>
+                <p class="muted">{{ t.name }} · {{ t.country }}</p>
+              </div>
+            </article>
+          </div>
+        </div>
+      </div>
+
+      <div v-else-if="block.type === 'logoWall'" class="section" style="background:var(--bg)">
+        <div class="wrap">
+          <h2>{{ block.props.heading || 'Partners' }}</h2>
+          <div class="certs">
+            <span v-for="(logo, i) in block.props.items" :key="i">{{ logo }}</span>
+          </div>
+        </div>
+      </div>
         <div class="wrap">
           <h2>{{ block.props.heading || $t('related') }}</h2>
           <div class="grid-3">

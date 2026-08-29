@@ -46,6 +46,14 @@ public class MediaService {
         return asset;
     }
 
+    public void delete(Long id) {
+        Asset asset = assetMapper.selectById(id);
+        if (asset == null || !asset.getTenantId().equals(tenantService.workingTenantId())) {
+            throw new BizException(404, "asset not found");
+        }
+        assetMapper.deleteById(id);
+    }
+
     public List<Asset> list() {
         return assetMapper.selectList(new LambdaQueryWrapper<Asset>()
                 .eq(Asset::getTenantId, tenantService.workingTenantId())

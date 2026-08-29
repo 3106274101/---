@@ -29,6 +29,7 @@
           <div class="item-head">
             <span class="avatar lg">{{ String(row.name || 'NA').slice(0, 2).toUpperCase() }}</span>
             <span v-if="row.starred" class="mark">★</span>
+            <span v-if="(row.repeatCount || 0) > 1" class="mark">老客</span>
             <span class="pill" :class="'pill-' + row.status">{{ statusLabel(row.status) }}</span>
           </div>
           <h3>{{ row.name }}</h3>
@@ -52,6 +53,8 @@
         <p>{{ current.country }} · WhatsApp {{ current.whatsapp || '-' }}</p>
         <p>产品 {{ current.productName || '-' }} · 数量 {{ current.quantity || '-' }}</p>
         <p class="sub">来源 {{ current.source || 'storefront' }} · {{ formatTime(current.createdAt) }}</p>
+        <p v-if="(current.repeatCount || 0) > 1" class="mark">同一邮箱已询盘 {{ current.repeatCount }} 次</p>
+        <p v-if="utmText(current)" class="sub">投放 {{ utmText(current) }}</p>
         <el-divider />
         <p style="white-space:pre-wrap">{{ current.message }}</p>
         <el-divider />
@@ -218,6 +221,15 @@ function statusLabel(status: string) {
 }
 function formatTime(v?: string) {
   return v ? String(v).replace('T', ' ').slice(0, 16) : ''
+}
+function utmText(row: any) {
+  try {
+    const u = typeof row.utmJson === 'string' ? JSON.parse(row.utmJson || '{}') : row.utm || {}
+    const parts = [u.source, u.medium, u.campaign, u.gclid].filter(Boolean)
+    return parts.join(' / ')
+  } catch {
+    return ''
+  }
 }
 onMounted(load)
 </script>

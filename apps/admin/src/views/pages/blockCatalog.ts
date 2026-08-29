@@ -11,6 +11,8 @@ export type BlockType =
   | 'cta'
   | 'richText'
   | 'blogTeaser'
+  | 'testimonials'
+  | 'logoWall'
 
 export interface BlockDef {
   type: BlockType
@@ -122,6 +124,24 @@ export const BLOCK_CATALOG: BlockDef[] = [
     label: '博客摘要',
     hint: 'SEO 文章入口',
     defaults: { heading: 'Insights for buyers' }
+  },
+  {
+    type: 'testimonials',
+    label: '客户评价',
+    hint: '采购商口碑，增强信任',
+    defaults: {
+      heading: 'Buyers say',
+      items: [
+        { quote: 'Calibration was stable after 3 months on site.', name: 'Procurement', country: 'Pakistan' },
+        { quote: 'OEM panel and 380V matched our station drawing.', name: 'Contractor', country: 'Nigeria' }
+      ]
+    }
+  },
+  {
+    type: 'logoWall',
+    label: '合作/市场墙',
+    hint: '出口市场或合作品牌文字',
+    defaults: { heading: 'Markets', items: ['Pakistan', 'Nigeria', 'Kenya', 'UAE'] }
   }
 ]
 

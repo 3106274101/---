@@ -198,6 +198,25 @@ public class CmsService {
         return articleView(copy, locale);
     }
 
+    public void deletePage(Long id) {
+        CmsPage page = pageMapper.selectById(id);
+        if (page == null || !page.getTenantId().equals(tenantService.workingTenantId())) {
+            throw new BizException(404, "page not found");
+        }
+        if ("home".equals(page.getSlug())) {
+            throw new BizException(422, "cannot delete home page");
+        }
+        pageMapper.deleteById(id);
+    }
+
+    public void deleteArticle(Long id) {
+        Article article = articleMapper.selectById(id);
+        if (article == null || !article.getTenantId().equals(tenantService.workingTenantId())) {
+            throw new BizException(404, "article not found");
+        }
+        articleMapper.deleteById(id);
+    }
+
     public Map<String, Object> pageView(CmsPage page, String locale) {
         CmsPageI18n i18n = pickPageI18n(page.getId(), locale);
         Map<String, Object> map = new HashMap<>();

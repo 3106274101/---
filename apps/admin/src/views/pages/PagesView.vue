@@ -23,6 +23,7 @@
           <el-button size="small" type="primary" @click="$router.push('/pages/' + row.id)">装修</el-button>
           <el-button size="small" @click="duplicate(row)">复制</el-button>
           <el-button size="small" @click="preview(row)">预览</el-button>
+          <el-button v-if="row.slug !== 'home'" size="small" text type="danger" @click="remove(row)">删除</el-button>
         </div>
       </article>
     </div>
@@ -42,11 +43,12 @@ const types: Record<string, string> = {
   home: '首页', about: '关于我们', factory: '工厂', certificates: '证书',
   faq: 'FAQ', contact: '联系', solutions: '方案', custom: '自定义页'
 }
-onMounted(async () => {
+onMounted(load)
+async function load() {
   const siteId = localStorage.getItem('th_site')
   const res: any = await http.get('/admin/pages', { params: { siteId } })
   list.value = res.data || []
-})
+}
 function typeLabel(type: string) {
   return types[type] || type || '页面'
 }
@@ -65,6 +67,11 @@ async function duplicate(row: any) {
   const res: any = await http.post('/admin/pages/' + row.id + '/duplicate')
   ElMessage.success('已复制为草稿页')
   router.push('/pages/' + res.data.id)
+}
+async function remove(row: any) {
+  await http.delete('/admin/pages/' + row.id)
+  ElMessage.success('已删除')
+  load()
 }
 function preview(row: any) {
   const path = row.slug === 'home' ? '/en' : `/en/${row.slug}`

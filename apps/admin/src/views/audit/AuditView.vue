@@ -8,7 +8,8 @@
     </div>
     <el-table :data="list" v-loading="loading">
       <el-table-column prop="createdAt" label="时间" width="180" />
-      <el-table-column prop="userId" label="用户 ID" width="100" />
+      <el-table-column prop="userName" label="操作人" width="140" />
+      <el-table-column prop="userId" label="用户 ID" width="90" />
       <el-table-column prop="action" label="动作" />
       <el-table-column prop="targetType" label="对象" width="100" />
       <el-table-column prop="detailJson" label="详情" show-overflow-tooltip />

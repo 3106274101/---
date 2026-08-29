@@ -46,4 +46,7 @@ public class Inquiry {
     private LocalDateTime updatedAt;
     @TableLogic
     private Integer deleted;
+
+    @TableField(exist = false)
+    private Integer repeatCount;
 }

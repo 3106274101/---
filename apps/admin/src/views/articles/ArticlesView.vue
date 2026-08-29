@@ -23,6 +23,7 @@
         <div class="item-foot" @click.stop>
           <el-button size="small" type="primary" @click="open(row)">编辑</el-button>
           <el-button size="small" @click="duplicate(row)">复制</el-button>
+          <el-button size="small" text type="danger" @click="remove(row)">删除</el-button>
         </div>
       </article>
     </div>
@@ -34,6 +35,8 @@
         <el-form-item label="摘要"><el-input v-model="form.summary" /></el-form-item>
         <el-form-item label="正文"><el-input v-model="form.content" type="textarea" :rows="8" /></el-form-item>
         <el-form-item label="封面"><MediaPicker v-model="form.coverUrl" /></el-form-item>
+        <el-form-item label="SEO Title"><el-input v-model="form.seoTitle" /></el-form-item>
+        <el-form-item label="SEO Description"><el-input v-model="form.seoDescription" type="textarea" :rows="2" /></el-form-item>
         <el-form-item label="状态">
           <el-select v-model="form.status" style="width:100%">
             <el-option label="草稿" value="draft" />
@@ -55,6 +58,7 @@
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
+import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import http from '../../api/http'
 import MediaPicker from '../../components/MediaPicker.vue'
@@ -62,6 +66,7 @@ import { suggestSlug } from '../../utils/slug'
 
 const list = ref<any[]>([])
 const visible = ref(false)
+const route = useRoute()
 const form = reactive<any>({ status: 'draft', siteId: Number(localStorage.getItem('th_site') || 1) })
 async function load() {
   const res: any = await http.get('/admin/articles', { params: { siteId: form.siteId } })
@@ -79,16 +84,28 @@ async function duplicate(row: any) {
   ElMessage.success('已复制为草稿')
   load()
 }
+async function remove(row: any) {
+  await http.delete('/admin/articles/' + row.id)
+  ElMessage.success('已删除')
+  load()
+}
 async function save() {
   form.siteId = Number(localStorage.getItem('th_site') || 1)
-  form.seoTitle = form.title
-  form.seoDescription = form.summary
+  if (!form.seoTitle) form.seoTitle = form.title
+  if (!form.seoDescription) form.seoDescription = form.summary
   if (form.id) await http.put('/admin/articles/' + form.id, form)
   else await http.post('/admin/articles', form)
   visible.value = false
   load()
 }
-onMounted(load)
+onMounted(async () => {
+  await load()
+  const editId = Number(route.query.edit)
+  if (editId) {
+    const hit = list.value.find((x: any) => x.id === editId)
+    if (hit) open(hit)
+  }
+})
 function statusLabel(status: string) {
   return ({ live: '已发布', draft: '草稿', scheduled: '定时发布' } as any)[status] || status
 }
