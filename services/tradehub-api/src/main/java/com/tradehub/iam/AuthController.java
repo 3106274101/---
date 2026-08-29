@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
     private final AuthService authService;
     private final UserAccountMapper userMapper;
+    private final MemberService memberService;
 
     @PostMapping("/login")
     public R<?> login(@Valid @RequestBody AuthService.LoginRequest req) {
@@ -31,5 +32,11 @@ public class AuthController {
         }
         UserAccount account = userMapper.selectById(user.getUserId());
         return R.ok(authService.profile(user, account));
+    }
+
+    @PostMapping("/password")
+    public R<?> password(@Valid @RequestBody AuthService.PasswordRequest req) {
+        memberService.changeOwnPassword(req.getOldPassword(), req.getNewPassword());
+        return R.ok();
     }
 }

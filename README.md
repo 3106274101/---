@@ -41,6 +41,8 @@ npm run dev
 
 - 平台超管 `admin` / `admin123`
 - 租户老板 `fueltech` / `fueltech123`
+- 编辑 `editor` / `editor123`（仅新种子库）
+- 销售 `sales` / `sales123`（仅新种子库）
 
 **3. 启动加油机独立站**
 
@@ -84,7 +86,38 @@ mvn spring-boot:run
 ## 已实现能力（对应规划第一期）
 
 - 一个后台管理站点、页面区块、商品上下架、博客、询盘、媒体、301
+- 角色权限矩阵（SUPER / OWNER / EDITOR / SALES）、成员管理、操作日志、改密
+- 后台绑定域名；独立站按 `Host` / `X-Site-Host` 切站，`?site=` 仅用于预览
+- 草稿 / 定时发布；询盘邮件通知（需配置 SMTP）；询盘 CSV 与分配
+- 品牌装修写入 GA4 Measurement ID；对象存储可切 MinIO/S3
 - 租户隔离（超管可切租户）
 - Nuxt SSR、hreflang、canonical、OG、Organization/Product/FAQ JSON-LD、sitemap、robots
 - 询盘蜜罐字段 + 简单频控
 - 加油机工业模板与中英内容种子
+- Docker 一键全栈、备份演练脚本、角色单测
+
+## Docker 一键起全栈
+
+需要本机 Docker Desktop。在仓库根目录：
+
+```powershell
+docker compose -f infra/docker-compose.yml up --build
+```
+
+- 后台 http://localhost:8081 （admin / admin123）
+- 独立站 http://localhost:3000/en
+- API http://localhost:8080
+- MinIO 控制台 http://localhost:9001 （tradehub / tradehubsecret）
+
+对象存储默认仍是本地磁盘。若要走 MinIO，给 API 设置 `TRADEHUB_STORAGE_TYPE=s3` 后重启。
+
+询盘邮件：设置 `TRADEHUB_MAIL_ENABLED=true` 以及 `MAIL_HOST` / `MAIL_USERNAME` / `MAIL_PASSWORD` / `TRADEHUB_MAIL_TO`。
+
+## 备份演练
+
+```powershell
+powershell -File scripts/backup.ps1
+```
+
+产出在 `backups/<时间戳>/`：有 mysqldump 则含 SQL，否则拷贝 H2 `data/` 与 `uploads/`。恢复 MySQL：`mysql -u tradehub -ptradehub tradehub < backups\...\tradehub.sql`。
+

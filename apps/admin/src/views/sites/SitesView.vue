@@ -20,11 +20,12 @@
             <span class="pill" :class="pillClass(row.status)">{{ statusLabel(row.status) }}</span>
           </div>
           <h3>{{ row.name }}</h3>
-          <p>{{ row.code }}.local</p>
+          <p>{{ primaryHost(row) }}</p>
           <p style="margin-top:8px">{{ templateName(row.theme) }} · {{ localeText(row.locales) }}</p>
         </div>
         <div class="item-foot">
           <el-button size="small" @click="open(row)">编辑</el-button>
+          <el-button v-if="auth.can('DOMAINS')" size="small" @click="openDomains(row)">绑定域名</el-button>
           <el-button size="small" @click="preview(row)">预览</el-button>
           <el-button size="small" @click="goTheme(row)">品牌</el-button>
           <el-button size="small" type="primary" @click="goPages(row)">装修</el-button>
@@ -74,6 +75,35 @@
         <el-button type="primary" @click="save">保存</el-button>
       </template>
     </el-dialog>
+
+    <el-dialog v-model="domainVisible" :title="'绑定域名 · ' + (domainSite?.name || '')" width="640px">
+      <p class="form-hint">把客户域名的 A / CNAME 指到独立站服务器后，在此填写主机名（不含 http）。同一进程可按 Host 自动切站。</p>
+      <el-table :data="domains" size="small" style="margin:12px 0">
+        <el-table-column prop="host" label="主机名" />
+        <el-table-column label="主域名" width="90">
+          <template #default="{ row }">{{ row.isPrimary === 1 ? '是' : '' }}</template>
+        </el-table-column>
+        <el-table-column label="操作" width="180">
+          <template #default="{ row }">
+            <el-button size="small" :disabled="row.isPrimary === 1" @click="setPrimary(row)">设为主域名</el-button>
+            <el-button size="small" type="danger" text @click="removeDomain(row)">解绑</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <el-form inline>
+        <el-form-item label="主机名">
+          <el-input v-model="newHost" placeholder="www.example.com" style="width:260px" />
+        </el-form-item>
+        <el-form-item>
+          <el-checkbox v-model="newPrimary">主域名</el-checkbox>
+        </el-form-item>
+        <el-form-item>
+          <el-button @click="checkDns">检测解析</el-button>
+          <el-button type="primary" @click="bindDomain">绑定</el-button>
+        </el-form-item>
+      </el-form>
+      <p v-if="dnsHint" class="form-hint">{{ dnsHint }}</p>
+    </el-dialog>
   </div>
 </template>
 
@@ -83,10 +113,18 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import http from '../../api/http'
 import { storePreview } from '../../config'
+import { useAuthStore } from '../../stores/auth'
 
+const auth = useAuthStore()
 const list = ref<any[]>([])
 const templates = ref<any[]>([])
 const visible = ref(false)
+const domainVisible = ref(false)
+const domainSite = ref<any>(null)
+const domains = ref<any[]>([])
+const newHost = ref('')
+const newPrimary = ref(true)
+const dnsHint = ref('')
 const router = useRouter()
 const form = reactive<any>({ theme: 'industrial', locales: 'en,zh', status: 'building', defaultLocale: 'en' })
 
@@ -100,6 +138,7 @@ async function loadTemplates() {
 }
 function open(row?: any) {
   Object.assign(form, row || { id: undefined, theme: 'industrial', locales: 'en,zh', status: 'building', defaultLocale: 'en', name: '', code: '' })
+  if (Array.isArray(form.locales)) form.locales = form.locales.join(',')
   visible.value = true
 }
 function goTheme(row: any) {
@@ -114,6 +153,54 @@ function goPages(row: any) {
 }
 function preview(row: any) {
   window.open(storePreview('/en', row.code), '_blank')
+}
+function primaryHost(row: any) {
+  const hit = (row.domains || []).find((d: any) => d.isPrimary === 1) || (row.domains || [])[0]
+  return hit?.host || `${row.code}.local`
+}
+async function openDomains(row: any) {
+  domainSite.value = row
+  newHost.value = ''
+  newPrimary.value = !(row.domains || []).length
+  domainVisible.value = true
+  await loadDomains(row.id)
+}
+async function loadDomains(siteId: number) {
+  const res: any = await http.get('/admin/domains', { params: { siteId } })
+  domains.value = res.data || []
+}
+async function bindDomain() {
+  if (!newHost.value || !domainSite.value) return
+  await http.post('/admin/domains', { siteId: domainSite.value.id, host: newHost.value, primary: newPrimary.value })
+  ElMessage.success('已绑定，独立站将按 Host 识别该站')
+  newHost.value = ''
+  dnsHint.value = ''
+  await loadDomains(domainSite.value.id)
+  load()
+}
+async function checkDns() {
+  const host = newHost.value || domains.value[0]?.host
+  if (!host) {
+    ElMessage.warning('先填写主机名')
+    return
+  }
+  const res: any = await http.get('/admin/domains/check', { params: { host } })
+  if (res.data?.ok) {
+    dnsHint.value = `${res.data.host} 已解析到 ${(res.data.addresses || []).join(', ')}` + (res.data.bound ? '（已绑定本系统）' : '')
+    ElMessage.success('解析正常')
+  } else {
+    dnsHint.value = res.data?.message || '无法解析'
+    ElMessage.warning(dnsHint.value)
+  }
+}
+async function setPrimary(row: any) {
+  await http.post('/admin/domains/' + row.id + '/primary')
+  await loadDomains(domainSite.value.id)
+}
+async function removeDomain(row: any) {
+  await http.delete('/admin/domains/' + row.id)
+  await loadDomains(domainSite.value.id)
+  load()
 }
 function templateName(theme?: string) {
   const id = !theme || theme === 'industrial-fuel' ? 'industrial' : theme

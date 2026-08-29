@@ -17,6 +17,10 @@ export default defineI18nConfig(() => ({
       productLead: 'Honesty to Brilliance island dispensers, Prestige mini stations 300–6000L, 11A nozzles. OEM factory in Xinxiang, Henan.',
       inquiryLead: 'Tell us voltage, nozzle count, gasoline/diesel and destination port.',
       replyHint: 'Export desk replies within one business day.',
+      relatedProducts: 'Related models',
+      notFound: 'Page not found',
+      notFoundHint: 'This page is not available. Browse products or send an inquiry.',
+      stickyHint: 'Need a quote for fuel dispensers or mini stations?',
       form: {
         name: 'Name', company: 'Company', email: 'Email', phone: 'Phone', country: 'Country',
         quantity: 'Quantity', message: 'Requirements', submit: 'Send inquiry',
@@ -40,6 +44,10 @@ export default defineI18nConfig(() => ({
       productLead: '诚信至辉煌岛式加油机、尊享 300–6000L 微型站、11A 油枪。河南新乡厂家直供。',
       inquiryLead: '请告知电压、枪数、汽柴油与目的港。',
       replyHint: '出口商务将在一个工作日内回复。',
+      relatedProducts: '相关机型',
+      notFound: '页面不存在',
+      notFoundHint: '该页面不可用，可浏览产品或提交询盘。',
+      stickyHint: '需要加油机或微型站报价？',
       form: {
         name: '姓名', company: '公司', email: '邮箱', phone: '电话', country: '国家',
         quantity: '数量', message: '需求', submit: '提交询盘',

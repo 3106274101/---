@@ -15,31 +15,38 @@
       <a v-if="auth.user?.superAdmin" href="javascript:;" :class="{ 'is-active': isActive('/tenants') }" @click.prevent="$router.push('/tenants')">
         <el-icon><OfficeBuilding /></el-icon>租户
       </a>
-      <a href="javascript:;" :class="{ 'is-active': isActive('/sites') }" @click.prevent="$router.push('/sites')">
+      <a v-if="auth.can('SITES')" href="javascript:;" :class="{ 'is-active': isActive('/sites') }" @click.prevent="$router.push('/sites')">
         <el-icon><Monitor /></el-icon>站点
       </a>
-      <a href="javascript:;" :class="{ 'is-active': isActive('/theme') }" @click.prevent="$router.push('/theme')">
+      <a v-if="auth.can('SITES')" href="javascript:;" :class="{ 'is-active': isActive('/theme') }" @click.prevent="$router.push('/theme')">
         <el-icon><Brush /></el-icon>品牌装修
       </a>
-      <a href="javascript:;" :class="{ 'is-active': isActive('/pages') }" @click.prevent="$router.push('/pages')">
+      <a v-if="auth.can('PAGES')" href="javascript:;" :class="{ 'is-active': isActive('/pages') }" @click.prevent="$router.push('/pages')">
         <el-icon><Grid /></el-icon>页面搭建
       </a>
       <div class="nav-group">运营</div>
-      <a href="javascript:;" :class="{ 'is-active': isActive('/products') }" @click.prevent="$router.push('/products')">
+      <a v-if="auth.can('PRODUCTS')" href="javascript:;" :class="{ 'is-active': isActive('/products') }" @click.prevent="$router.push('/products')">
         <el-icon><Goods /></el-icon>商品
       </a>
-      <a href="javascript:;" :class="{ 'is-active': isActive('/articles') }" @click.prevent="$router.push('/articles')">
+      <a v-if="auth.can('ARTICLES')" href="javascript:;" :class="{ 'is-active': isActive('/articles') }" @click.prevent="$router.push('/articles')">
         <el-icon><Document /></el-icon>内容
       </a>
-      <a href="javascript:;" :class="{ 'is-active': isActive('/inquiries') }" @click.prevent="$router.push('/inquiries')">
+      <a v-if="auth.can('INQUIRIES')" href="javascript:;" :class="{ 'is-active': isActive('/inquiries') }" @click.prevent="$router.push('/inquiries')">
         <el-icon><ChatDotSquare /></el-icon>询盘
         <em v-if="newInquiries">{{ newInquiries }}</em>
       </a>
-      <a href="javascript:;" :class="{ 'is-active': isActive('/media') }" @click.prevent="$router.push('/media')">
+      <a v-if="auth.can('MEDIA')" href="javascript:;" :class="{ 'is-active': isActive('/media') }" @click.prevent="$router.push('/media')">
         <el-icon><Picture /></el-icon>媒体
       </a>
-      <a href="javascript:;" :class="{ 'is-active': isActive('/seo') }" @click.prevent="$router.push('/seo')">
+      <a v-if="auth.can('SEO')" href="javascript:;" :class="{ 'is-active': isActive('/seo') }" @click.prevent="$router.push('/seo')">
         <el-icon><Search /></el-icon>SEO
+      </a>
+      <div v-if="auth.can('MEMBERS') || auth.can('AUDIT')" class="nav-group">协作</div>
+      <a v-if="auth.can('MEMBERS')" href="javascript:;" :class="{ 'is-active': isActive('/members') }" @click.prevent="$router.push('/members')">
+        <el-icon><User /></el-icon>成员
+      </a>
+      <a v-if="auth.can('AUDIT')" href="javascript:;" :class="{ 'is-active': isActive('/audit') }" @click.prevent="$router.push('/audit')">
+        <el-icon><Notebook /></el-icon>操作日志
       </a>
     </aside>
     <section class="main">
@@ -54,7 +61,17 @@
           </div>
         </div>
         <div class="top-right">
+          <el-input
+            v-model="searchQ"
+            size="small"
+            placeholder="搜索商品 / 页面 / 询盘  Ctrl+K"
+            style="width: 240px"
+            clearable
+            @focus="openSearch"
+            @keyup.enter="runSearch"
+          />
           <el-button size="small" @click="openStore">预览独立站</el-button>
+          <el-button size="small" text @click="pwdVisible = true">改密</el-button>
           <span class="avatar sm">{{ initials(auth.user?.displayName) }}</span>
           <span class="who">{{ auth.user?.displayName }}</span>
           <el-button size="small" text @click="logout">退出</el-button>
@@ -62,13 +79,36 @@
       </header>
       <div class="content" :class="{ flush: isBuilder }"><router-view /></div>
     </section>
+    <el-dialog v-model="searchVisible" title="全局搜索" width="640px" @opened="focusSearch">
+      <el-input ref="searchInput" v-model="searchQ" placeholder="型号、页面标题、询盘邮箱、客户名" clearable @input="onSearchInput" @keyup.enter="runSearch" />
+      <div v-if="searching" class="empty-hint" style="margin-top:12px">搜索中…</div>
+      <div v-else-if="searchQ && !hasHits" class="empty-hint" style="margin-top:12px">没有匹配结果。</div>
+      <div v-for="group in searchGroups" :key="group.key" class="search-group">
+        <h4>{{ group.label }}</h4>
+        <button v-for="hit in group.items" :key="group.key + hit.id" type="button" class="search-hit" @click="goHit(group.key, hit)">
+          <b>{{ hit.title }}</b>
+          <span>{{ hit.sub }}</span>
+        </button>
+      </div>
+    </el-dialog>
+    <el-dialog v-model="pwdVisible" title="修改密码" width="420px">
+      <el-form label-width="90px">
+        <el-form-item label="旧密码"><el-input v-model="pwd.oldPassword" type="password" /></el-form-item>
+        <el-form-item label="新密码"><el-input v-model="pwd.newPassword" type="password" /></el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="pwdVisible = false">取消</el-button>
+        <el-button type="primary" @click="changePassword">保存</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Brush, ChatDotSquare, Document, Goods, Grid, Monitor, Odometer, OfficeBuilding, Picture, Search } from '@element-plus/icons-vue'
+import { Brush, ChatDotSquare, Document, Goods, Grid, Monitor, Notebook, Odometer, OfficeBuilding, Picture, Search, User } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
 import http from '../api/http'
 import { storePreview } from '../config'
 import { useAuthStore } from '../stores/auth'
@@ -81,8 +121,31 @@ const siteId = ref(localStorage.getItem('th_site') || '')
 const locale = ref(localStorage.getItem('th_locale') || 'en')
 const newInquiries = ref(0)
 const isBuilder = computed(() => /^\/pages\/\d+/.test(route.path))
+const pwdVisible = ref(false)
+const pwd = ref({ oldPassword: '', newPassword: '' })
+const searchVisible = ref(false)
+const searchQ = ref('')
+const searching = ref(false)
+const searchHits = ref<any>({ products: [], pages: [], articles: [], inquiries: [], sites: [] })
+const searchInput = ref<{ focus?: () => void; input?: HTMLInputElement } | null>(null)
+let searchTimer: number | undefined
+const hasHits = computed(() => searchGroups.value.some((g) => g.items.length))
+const searchGroups = computed(() => [
+  { key: 'products', label: '商品', items: (searchHits.value.products || []).map((p: any) => ({ id: p.id, title: p.name, sub: p.model || p.slug })) },
+  { key: 'pages', label: '页面', items: (searchHits.value.pages || []).map((p: any) => ({ id: p.id, title: p.title, sub: '/' + p.slug })) },
+  { key: 'articles', label: '文章', items: (searchHits.value.articles || []).map((p: any) => ({ id: p.id, title: p.title, sub: p.slug })) },
+  { key: 'inquiries', label: '询盘', items: (searchHits.value.inquiries || []).map((p: any) => ({ id: p.id, title: p.name, sub: p.email || p.company })) },
+  { key: 'sites', label: '站点', items: (searchHits.value.sites || []).map((p: any) => ({ id: p.id, title: p.name, sub: p.code })) }
+].filter((g) => g.items.length))
 
 onMounted(async () => {
+  try {
+    const me: any = await http.get('/admin/auth/me')
+    auth.user = me.data
+    localStorage.setItem('th_user', JSON.stringify(me.data))
+  } catch {
+    /* keep cached profile */
+  }
   const res: any = await http.get('/admin/sites')
   sites.value = res.data?.list || []
   if (!siteId.value && sites.value[0]) {
@@ -97,7 +160,49 @@ onMounted(async () => {
   } catch {
     newInquiries.value = 0
   }
+  window.addEventListener('keydown', onHotkey)
 })
+onUnmounted(() => window.removeEventListener('keydown', onHotkey))
+
+function onHotkey(e: KeyboardEvent) {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+    e.preventDefault()
+    openSearch()
+  }
+}
+function openSearch() {
+  searchVisible.value = true
+}
+function focusSearch() {
+  searchInput.value?.input?.focus?.()
+}
+function onSearchInput() {
+  window.clearTimeout(searchTimer)
+  searchTimer = window.setTimeout(runSearch, 280)
+}
+async function runSearch() {
+  const q = searchQ.value.trim()
+  if (!q) {
+    searchHits.value = { products: [], pages: [], articles: [], inquiries: [], sites: [] }
+    return
+  }
+  searching.value = true
+  try {
+    const res: any = await http.get('/admin/search', { params: { q } })
+    searchHits.value = res.data || {}
+    if (!searchVisible.value) searchVisible.value = true
+  } finally {
+    searching.value = false
+  }
+}
+function goHit(kind: string, hit: any) {
+  searchVisible.value = false
+  if (kind === 'products') router.push('/products/' + hit.id)
+  else if (kind === 'pages') router.push('/pages/' + hit.id)
+  else if (kind === 'articles') router.push('/articles')
+  else if (kind === 'inquiries') router.push('/inquiries')
+  else router.push('/sites')
+}
 
 function isActive(to: string, exact = false) {
   if (exact) return route.path === to
@@ -120,6 +225,16 @@ function onLocale(val: string) {
 function logout() {
   auth.logout()
   router.push('/login')
+}
+async function changePassword() {
+  if (!pwd.value.newPassword || pwd.value.newPassword.length < 6) {
+    ElMessage.warning('新密码至少 6 位')
+    return
+  }
+  await http.post('/admin/auth/password', pwd.value)
+  ElMessage.success('密码已更新')
+  pwdVisible.value = false
+  pwd.value = { oldPassword: '', newPassword: '' }
 }
 function openStore() {
   const current = sites.value.find((s: any) => String(s.id) === siteId.value)

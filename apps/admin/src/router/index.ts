@@ -20,7 +20,9 @@ const router = createRouter({
         { path: 'articles', component: () => import('../views/articles/ArticlesView.vue') },
         { path: 'inquiries', component: () => import('../views/inquiries/InquiriesView.vue') },
         { path: 'media', component: () => import('../views/media/MediaView.vue') },
-        { path: 'seo', component: () => import('../views/seo/SeoView.vue') }
+        { path: 'seo', component: () => import('../views/seo/SeoView.vue') },
+        { path: 'members', component: () => import('../views/members/MembersView.vue'), meta: { permission: 'MEMBERS' } },
+        { path: 'audit', component: () => import('../views/audit/AuditView.vue'), meta: { permission: 'AUDIT' } }
       ]
     }
   ]
@@ -32,6 +34,10 @@ router.beforeEach((to) => {
     return '/login'
   }
   if (to.path === '/login' && auth.token) {
+    return '/'
+  }
+  const perm = to.meta?.permission as string | undefined
+  if (perm && !auth.can(perm)) {
     return '/'
   }
 })

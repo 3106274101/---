@@ -36,6 +36,11 @@ public class CatalogController {
         return R.ok(catalogService.listProducts(TenantContext.getLocale(), keyword, status, page, pageSize));
     }
 
+    @GetMapping("/products/export")
+    public R<?> export() {
+        return R.ok(java.util.Map.of("filename", "products.csv", "csv", catalogService.exportCsv(TenantContext.getLocale())));
+    }
+
     @GetMapping("/products/{id}")
     public R<?> product(@PathVariable Long id) {
         return R.ok(catalogService.getProduct(id, TenantContext.getLocale()));
@@ -50,6 +55,20 @@ public class CatalogController {
     public R<?> updateProduct(@PathVariable Long id, @RequestBody CatalogService.ProductSaveRequest req) {
         req.setId(id);
         return R.ok(catalogService.saveProduct(req, TenantContext.getLocale()));
+    }
+
+    @PostMapping("/products/{id}/duplicate")
+    public R<?> duplicate(@PathVariable Long id) {
+        return R.ok(catalogService.duplicate(id, TenantContext.getLocale()));
+    }
+
+    @PostMapping("/products/bulk-status")
+    public R<?> bulk(@RequestBody java.util.Map<String, Object> body) {
+        @SuppressWarnings("unchecked")
+        java.util.List<Number> ids = (java.util.List<Number>) body.get("ids");
+        String status = String.valueOf(body.get("status"));
+        int n = catalogService.bulkStatus(ids == null ? java.util.List.of() : ids.stream().map(Number::longValue).toList(), status);
+        return R.ok(java.util.Map.of("updated", n));
     }
 
     @PostMapping("/products/{id}/status")

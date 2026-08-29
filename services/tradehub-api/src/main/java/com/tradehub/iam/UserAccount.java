@@ -25,6 +25,9 @@ public class UserAccount {
     private String roleCode;
     private Integer status;
     private Integer isSuperAdmin;
+    private LocalDateTime lastLoginAt;
+    private Integer failedLogins;
+    private LocalDateTime lockedUntil;
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
     @TableField(fill = FieldFill.INSERT_UPDATE)

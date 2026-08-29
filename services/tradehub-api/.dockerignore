@@ -1,8 +1,7 @@
 target
 data
-*.mv.db
-*.trace.db
+uploads
+!uploads/demo
 .git
 .idea
 *.iml
-*.log

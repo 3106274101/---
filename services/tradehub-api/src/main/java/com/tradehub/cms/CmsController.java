@@ -39,6 +39,16 @@ public class CmsController {
         return R.ok(cmsService.savePage(req, TenantContext.getLocale()));
     }
 
+    @PostMapping("/pages/{id}/duplicate")
+    public R<?> duplicatePage(@PathVariable Long id) {
+        return R.ok(cmsService.duplicatePage(id, TenantContext.getLocale()));
+    }
+
+    @PostMapping("/articles/{id}/duplicate")
+    public R<?> duplicateArticle(@PathVariable Long id) {
+        return R.ok(cmsService.duplicateArticle(id, TenantContext.getLocale()));
+    }
+
     @GetMapping("/articles")
     public R<?> articles(@RequestParam(required = false) Long siteId) {
         return R.ok(cmsService.listArticles(siteId, TenantContext.getLocale()));

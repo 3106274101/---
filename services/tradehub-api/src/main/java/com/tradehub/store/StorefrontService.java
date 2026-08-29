@@ -121,6 +121,19 @@ public class StorefrontService {
                 data.put("category", categories(site, locale).stream()
                         .filter(c -> product.getCategoryId() != null && product.getCategoryId().equals(c.get("id")))
                         .findFirst().orElse(null));
+                List<Map<String, Object>> related = new ArrayList<>();
+                for (Product other : catalogService.liveProducts(site.getTenantId())) {
+                    if (other.getId().equals(product.getId())) {
+                        continue;
+                    }
+                    if (product.getCategoryId() != null && product.getCategoryId().equals(other.getCategoryId())) {
+                        related.add(catalogService.productView(other, locale, false));
+                    }
+                    if (related.size() >= 4) {
+                        break;
+                    }
+                }
+                data.put("related", related);
                 return data;
             }
         }

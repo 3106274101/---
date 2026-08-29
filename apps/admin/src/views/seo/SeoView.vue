@@ -8,6 +8,18 @@
     </div>
     <div class="seo-grid">
       <div class="panel">
+        <div class="panel-h">上线健康度</div>
+        <div class="panel-pad">
+          <div class="health-score">{{ health.score ?? '—' }}</div>
+          <p class="form-hint">按首页发布、域名、封面图、GA4 和 SEO Title 打分。</p>
+          <ul class="health-list">
+            <li v-if="!(health.issues || []).length" class="ok">暂无明显问题</li>
+            <li v-for="(issue, i) in health.issues || []" :key="i" :class="issue.level">{{ issue.text }}</li>
+          </ul>
+          <el-button size="small" @click="loadHealth">重新检查</el-button>
+        </div>
+      </div>
+      <div class="panel">
         <div class="panel-h">robots.txt</div>
         <pre class="code-box">{{ robots || '（暂无）' }}</pre>
         <div class="panel-pad seo-links">
@@ -41,12 +53,23 @@ import { storePreview } from '../../config'
 
 const robots = ref('')
 const redirects = ref<any[]>([])
+const health = ref<any>({ score: 0, issues: [] })
 const form = reactive({ fromPath: '', toPath: '', code: 301, siteId: Number(localStorage.getItem('th_site') || 1) })
 async function load() {
   const r: any = await http.get('/admin/seo/robots')
   robots.value = r.data?.content || ''
   const d: any = await http.get('/admin/seo/redirects', { params: { siteId: form.siteId } })
   redirects.value = d.data || []
+  await loadHealth()
+}
+async function loadHealth() {
+  form.siteId = Number(localStorage.getItem('th_site') || 1)
+  try {
+    const h: any = await http.get('/admin/seo/health', { params: { siteId: form.siteId } })
+    health.value = h.data || { score: 0, issues: [] }
+  } catch {
+    health.value = { score: 0, issues: [{ level: 'error', text: '无法读取健康检查' }] }
+  }
 }
 async function save() {
   form.siteId = Number(localStorage.getItem('th_site') || 1)

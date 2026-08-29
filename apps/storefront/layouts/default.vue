@@ -89,11 +89,16 @@
       </div>
     </footer>
     <a v-if="waLink" class="wa" :href="waLink" target="_blank" rel="noopener">WA</a>
+    <div v-if="showSticky" class="sticky-cta">
+      <span>{{ $t('stickyHint') }}</span>
+      <NuxtLink :to="localePath('/inquiry')" class="btn">{{ $t('cta') }}</NuxtLink>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 const { locale } = useI18n()
+const route = useRoute()
 const switchLocalePath = useSwitchLocalePath()
 const localePath = useLocalePath()
 const { get, siteCode } = useStoreApi()
@@ -111,15 +116,32 @@ const logoLeft = computed(() => logoText.value.slice(0, splitAt.value))
 const logoRight = computed(() => logoText.value.slice(splitAt.value))
 const waLink = computed(() => {
   const raw = String(brand.value.whatsapp || '').replace(/\D/g, '')
-  return raw ? `https://wa.me/${raw}` : ''
+  if (!raw) return ''
+  return `https://wa.me/${raw}?text=${encodeURIComponent('Hi, I would like a quotation from ' + (brand.value.logoText || 'your factory'))}`
+})
+const showSticky = computed(() => {
+  const path = String(route.path || '')
+  return !path.includes('/inquiry') && !path.includes('/products/')
 })
 
 useHead({
   htmlAttrs: { 'data-theme': theme.value },
   style: [{
     innerHTML: `:root{--navy:${brand.value.primaryColor || '#0b1f3a'};--navy-2:${brand.value.primaryColor || '#0b1f3a'};--cta:${brand.value.accentColor || '#e85d04'};--cta-2:${brand.value.accentColor || '#c44d00'};--radius:${brand.value.radius || '4px'};}`
-  }]
+  }],
+  script: ga4Scripts(brand.value.ga4Id)
 })
+
+function ga4Scripts(raw?: string) {
+  const id = String(raw || '').trim()
+  if (!/^G-[A-Z0-9]+$/i.test(id)) return []
+  return [
+    { src: `https://www.googletagmanager.com/gtag/js?id=${id}`, async: true },
+    {
+      innerHTML: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${id}');`
+    }
+  ]
+}
 
 function goSearch() {
   navigateTo({ path: localePath('/search'), query: { q: q.value } })

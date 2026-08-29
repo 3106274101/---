@@ -33,6 +33,12 @@ public class Inquiry {
     private String honeypot;
     private String utmJson;
     private String status;
+    private Long assignedUserId;
+    private String notesJson;
+    @com.fasterxml.jackson.annotation.JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime nextFollowAt;
+    private Integer starred;
+    private String source;
     private String ip;
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;

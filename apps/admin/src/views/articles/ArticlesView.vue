@@ -16,28 +16,33 @@
         <div class="item-body">
           <div class="item-head">
             <h3>{{ row.title }}</h3>
-            <span class="pill" :class="row.status === 'live' ? 'pill-live' : 'pill-building'">{{ row.status === 'live' ? '已发布' : '草稿' }}</span>
+            <span class="pill" :class="row.status === 'live' ? 'pill-live' : 'pill-building'">{{ statusLabel(row.status) }}</span>
           </div>
           <p>{{ row.summary || row.slug }}</p>
         </div>
         <div class="item-foot" @click.stop>
           <el-button size="small" type="primary" @click="open(row)">编辑</el-button>
+          <el-button size="small" @click="duplicate(row)">复制</el-button>
         </div>
       </article>
     </div>
 
     <el-dialog v-model="visible" :title="form.id ? '编辑文章' : '写文章'" width="720px">
       <el-form :model="form" label-width="100px">
-        <el-form-item label="标题"><el-input v-model="form.title" /></el-form-item>
+        <el-form-item label="标题"><el-input v-model="form.title" @blur="maybeSlug" /></el-form-item>
         <el-form-item label="Slug"><el-input v-model="form.slug" /></el-form-item>
         <el-form-item label="摘要"><el-input v-model="form.summary" /></el-form-item>
         <el-form-item label="正文"><el-input v-model="form.content" type="textarea" :rows="8" /></el-form-item>
-        <el-form-item label="封面"><el-input v-model="form.coverUrl" /></el-form-item>
+        <el-form-item label="封面"><MediaPicker v-model="form.coverUrl" /></el-form-item>
         <el-form-item label="状态">
           <el-select v-model="form.status" style="width:100%">
             <el-option label="草稿" value="draft" />
+            <el-option label="定时发布" value="scheduled" />
             <el-option label="发布" value="live" />
           </el-select>
+        </el-form-item>
+        <el-form-item v-if="form.status === 'scheduled'" label="发布时间">
+          <el-date-picker v-model="form.scheduledAt" type="datetime" value-format="YYYY-MM-DD HH:mm:ss" style="width:100%" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -50,7 +55,10 @@
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
+import { ElMessage } from 'element-plus'
 import http from '../../api/http'
+import MediaPicker from '../../components/MediaPicker.vue'
+import { suggestSlug } from '../../utils/slug'
 
 const list = ref<any[]>([])
 const visible = ref(false)
@@ -60,8 +68,16 @@ async function load() {
   list.value = res.data || []
 }
 function open(row?: any) {
-  Object.assign(form, row || { id: undefined, status: 'draft', siteId: Number(localStorage.getItem('th_site') || 1), title: '', slug: '', summary: '', content: '', coverUrl: '' })
+  Object.assign(form, row || { id: undefined, status: 'draft', siteId: Number(localStorage.getItem('th_site') || 1), title: '', slug: '', summary: '', content: '', coverUrl: '', scheduledAt: '' })
   visible.value = true
+}
+function maybeSlug() {
+  if (!form.slug) form.slug = suggestSlug(form.title)
+}
+async function duplicate(row: any) {
+  await http.post('/admin/articles/' + row.id + '/duplicate')
+  ElMessage.success('已复制为草稿')
+  load()
 }
 async function save() {
   form.siteId = Number(localStorage.getItem('th_site') || 1)
@@ -73,4 +89,7 @@ async function save() {
   load()
 }
 onMounted(load)
+function statusLabel(status: string) {
+  return ({ live: '已发布', draft: '草稿', scheduled: '定时发布' } as any)[status] || status
+}
 </script>

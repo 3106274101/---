@@ -12,17 +12,35 @@
     </div>
 
     <div class="stat-row">
-      <div class="stat">
+      <div class="stat clickable" @click="$router.push('/sites')">
         <span class="stat-ico"><el-icon><Monitor /></el-icon></span>
         <div><b>{{ data.sites || 0 }}</b><span>站点</span></div>
       </div>
-      <div class="stat">
+      <div class="stat clickable" @click="$router.push('/products')">
         <span class="stat-ico"><el-icon><Goods /></el-icon></span>
         <div><b>{{ data.products || 0 }}</b><span>商品</span></div>
       </div>
-      <div class="stat">
+      <div class="stat clickable" @click="$router.push('/inquiries')">
         <span class="stat-ico"><el-icon><ChatDotSquare /></el-icon></span>
         <div><b>{{ data.inquiriesWeek || 0 }}</b><span>本周询盘</span></div>
+      </div>
+      <div class="stat clickable" @click="$router.push('/inquiries')">
+        <span class="stat-ico"><el-icon><Share /></el-icon></span>
+        <div><b>{{ data.overdueFollowups || 0 }}</b><span>逾期跟进</span></div>
+      </div>
+    </div>
+    <div class="stat-row" style="margin-top:12px">
+      <div class="stat clickable" @click="$router.push('/products')">
+        <span class="stat-ico"><el-icon><Goods /></el-icon></span>
+        <div><b>{{ data.draftProducts || 0 }}</b><span>草稿商品</span></div>
+      </div>
+      <div class="stat clickable" @click="$router.push('/products')">
+        <span class="stat-ico"><el-icon><Picture /></el-icon></span>
+        <div><b>{{ data.missingCover || 0 }}</b><span>缺封面</span></div>
+      </div>
+      <div class="stat clickable" @click="$router.push('/inquiries')">
+        <span class="stat-ico"><el-icon><ChatDotSquare /></el-icon></span>
+        <div><b>{{ data.newInquiries || 0 }}</b><span>待处理询盘</span></div>
       </div>
       <div class="stat">
         <span class="stat-ico"><el-icon><Share /></el-icon></span>
@@ -78,7 +96,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { ChatDotSquare, Goods, Monitor, Share } from '@element-plus/icons-vue'
+import { ChatDotSquare, Goods, Monitor, Picture, Share } from '@element-plus/icons-vue'
 import http from '../../api/http'
 
 const data = ref<any>({})
@@ -102,7 +120,7 @@ function pillClass(status: string) {
   return 'pill-off'
 }
 function inquiryLabel(status: string) {
-  return ({ new: '待跟进', following: '跟进中', quoted: '已报价' } as Record<string, string>)[status] || status
+  return ({ new: '待跟进', following: '跟进中', quoted: '已报价', lost: '已流失' } as Record<string, string>)[status] || status
 }
 </script>
 
@@ -110,5 +128,6 @@ function inquiryLabel(status: string) {
 .dash-grid { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 16px; align-items: start; }
 .dash-sites { grid-template-columns: 1fr; }
 .dash-inq-h { display: flex; justify-content: space-between; align-items: center; }
+.stat.clickable { cursor: pointer; }
 @media (max-width: 1100px) { .dash-grid { grid-template-columns: 1fr; } }
 </style>

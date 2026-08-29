@@ -53,12 +53,13 @@ public class TenantService {
         return body;
     }
 
-    public PageResult<Site> listSites() {
+    public PageResult<Map<String, Object>> listSites() {
         Long tenantId = workingTenantId();
         List<Site> list = siteMapper.selectList(new LambdaQueryWrapper<Site>()
                 .eq(Site::getTenantId, tenantId)
                 .orderByDesc(Site::getId));
-        return new PageResult<>(list, list.size(), 1, list.size());
+        List<Map<String, Object>> views = list.stream().map(this::siteView).toList();
+        return new PageResult<>(views, views.size(), 1, views.size());
     }
 
     public Site saveSite(Site body) {
@@ -158,6 +159,121 @@ public class TenantService {
                 .eq(Domain::getSiteId, site.getId()));
         map.put("domains", domains);
         return map;
+    }
+
+    public List<Domain> listDomains(Long siteId) {
+        getSite(siteId);
+        return domainMapper.selectList(new LambdaQueryWrapper<Domain>()
+                .eq(Domain::getSiteId, siteId)
+                .orderByDesc(Domain::getIsPrimary)
+                .orderByDesc(Domain::getId));
+    }
+
+    public Domain bindDomain(Long siteId, String host, boolean primary) {
+        Site site = getSite(siteId);
+        String normalized = normalizeHost(host);
+        if (!StringUtils.hasText(normalized)) {
+            throw new BizException(422, "invalid host");
+        }
+        Domain dup = domainMapper.selectOne(new LambdaQueryWrapper<Domain>()
+                .eq(Domain::getHost, normalized)
+                .last("limit 1"));
+        if (dup != null && !dup.getSiteId().equals(siteId)) {
+            throw new BizException(422, "host already bound");
+        }
+        if (dup != null) {
+            if (primary) {
+                clearPrimary(siteId);
+                dup.setIsPrimary(1);
+                domainMapper.updateById(dup);
+            }
+            return dup;
+        }
+        if (primary) {
+            clearPrimary(siteId);
+        }
+        Domain domain = new Domain();
+        domain.setTenantId(site.getTenantId());
+        domain.setSiteId(siteId);
+        domain.setHost(normalized);
+        domain.setIsPrimary(primary || listDomains(siteId).isEmpty() ? 1 : 0);
+        domainMapper.insert(domain);
+        return domain;
+    }
+
+    public Domain setPrimaryDomain(Long id) {
+        Domain domain = domainMapper.selectById(id);
+        if (domain == null) {
+            throw new BizException(404, "domain not found");
+        }
+        getSite(domain.getSiteId());
+        clearPrimary(domain.getSiteId());
+        domain.setIsPrimary(1);
+        domainMapper.updateById(domain);
+        return domain;
+    }
+
+    public void unbindDomain(Long id) {
+        Domain domain = domainMapper.selectById(id);
+        if (domain == null) {
+            throw new BizException(404, "domain not found");
+        }
+        getSite(domain.getSiteId());
+        domainMapper.deleteById(id);
+    }
+
+    public static String normalizeHost(String raw) {
+        if (!StringUtils.hasText(raw)) {
+            return "";
+        }
+        String host = raw.trim().toLowerCase();
+        host = host.replaceFirst("^https?://", "");
+        int slash = host.indexOf('/');
+        if (slash >= 0) {
+            host = host.substring(0, slash);
+        }
+        if (host.endsWith(".")) {
+            host = host.substring(0, host.length() - 1);
+        }
+        if (host.contains(":") && !host.startsWith("[")) {
+            host = host.split(":")[0];
+        }
+        return host.trim();
+    }
+
+    public Map<String, Object> checkHost(String raw) {
+        String host = normalizeHost(raw);
+        Map<String, Object> out = new HashMap<>();
+        out.put("host", host);
+        if (!StringUtils.hasText(host)) {
+            out.put("ok", false);
+            out.put("message", "empty host");
+            return out;
+        }
+        try {
+            java.net.InetAddress[] addrs = java.net.InetAddress.getAllByName(host);
+            out.put("ok", true);
+            out.put("addresses", java.util.Arrays.stream(addrs).map(java.net.InetAddress::getHostAddress).toList());
+            Domain bound = domainMapper.selectOne(new LambdaQueryWrapper<Domain>().eq(Domain::getHost, host).last("limit 1"));
+            out.put("bound", bound != null);
+            if (bound != null) {
+                out.put("siteId", bound.getSiteId());
+            }
+        } catch (Exception e) {
+            out.put("ok", false);
+            out.put("message", e.getMessage());
+        }
+        return out;
+    }
+
+    private void clearPrimary(Long siteId) {
+        List<Domain> list = domainMapper.selectList(new LambdaQueryWrapper<Domain>().eq(Domain::getSiteId, siteId));
+        for (Domain item : list) {
+            if (Integer.valueOf(1).equals(item.getIsPrimary())) {
+                item.setIsPrimary(0);
+                domainMapper.updateById(item);
+            }
+        }
     }
 
     public Site resolveByHostOrCode(String host, String code, String fallbackCode) {

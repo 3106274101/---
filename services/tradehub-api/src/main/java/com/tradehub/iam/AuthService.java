@@ -26,12 +26,29 @@ public class AuthService {
     public Map<String, Object> login(LoginRequest req) {
         UserAccount user = userMapper.selectOne(new LambdaQueryWrapper<UserAccount>()
                 .eq(UserAccount::getUsername, req.getUsername()));
-        if (user == null || !passwordEncoder.matches(req.getPassword(), user.getPasswordHash())) {
+        if (user == null) {
             throw new BizException(401, "invalid username or password");
+        }
+        if (user.getLockedUntil() != null && user.getLockedUntil().isAfter(java.time.LocalDateTime.now())) {
+            throw new BizException(423, "account locked, try again later");
+        }
+        if (!passwordEncoder.matches(req.getPassword(), user.getPasswordHash())) {
+            int fails = user.getFailedLogins() == null ? 0 : user.getFailedLogins();
+            fails++;
+            user.setFailedLogins(fails);
+            if (fails >= 5) {
+                user.setLockedUntil(java.time.LocalDateTime.now().plusMinutes(15));
+            }
+            userMapper.updateById(user);
+            throw new BizException(401, fails >= 5 ? "account locked for 15 minutes" : "invalid username or password");
         }
         if (user.getStatus() != null && user.getStatus() == 0) {
             throw new BizException(403, "account disabled");
         }
+        user.setFailedLogins(0);
+        user.setLockedUntil(null);
+        user.setLastLoginAt(java.time.LocalDateTime.now());
+        userMapper.updateById(user);
         LoginUser principal = LoginUser.builder()
                 .userId(user.getId())
                 .tenantId(user.getTenantId())
@@ -54,6 +71,7 @@ public class AuthService {
         map.put("roleCode", principal.getRoleCode());
         map.put("superAdmin", principal.isSuperAdmin());
         map.put("tenantId", principal.getTenantId());
+        map.put("permissions", RolePermissions.readable(principal.isSuperAdmin(), principal.getRoleCode()));
         if (principal.getTenantId() != null) {
             Tenant tenant = tenantMapper.selectById(principal.getTenantId());
             if (tenant != null) {
@@ -63,6 +81,7 @@ public class AuthService {
         }
         if (user != null) {
             map.put("email", user.getEmail());
+            map.put("lastLoginAt", user.getLastLoginAt());
         }
         return map;
     }
@@ -73,5 +92,13 @@ public class AuthService {
         private String username;
         @NotBlank
         private String password;
+    }
+
+    @Data
+    public static class PasswordRequest {
+        @NotBlank
+        private String oldPassword;
+        @NotBlank
+        private String newPassword;
     }
 }

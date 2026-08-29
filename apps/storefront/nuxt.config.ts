@@ -26,6 +26,7 @@ export default defineNuxtConfig({
     appManifest: false
   },
   runtimeConfig: {
+    apiBase: process.env.NUXT_API_BASE || process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:8080',
     public: {
       apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:8080',
       siteCode: process.env.NUXT_PUBLIC_SITE_CODE || 'fueltech',

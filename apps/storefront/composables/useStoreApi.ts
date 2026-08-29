@@ -3,12 +3,47 @@ export function useStoreApi() {
   const { locale } = useI18n()
   const route = useRoute()
 
+  function previewSiteCode() {
+    const q = route.query.site
+    return typeof q === 'string' && q ? q : ''
+  }
+
+  function visitorHost() {
+    try {
+      if (import.meta.server) {
+        return useRequestURL().host
+      }
+    } catch {
+      /* ignore */
+    }
+    if (typeof window !== 'undefined') {
+      return window.location.host
+    }
+    return ''
+  }
+
+  function headers() {
+    const h: Record<string, string> = {
+      'X-Locale': locale.value,
+      'X-Site-Host': visitorHost()
+    }
+    const code = previewSiteCode()
+    if (code) h['X-Site-Code'] = code
+    return h
+  }
+
   function siteCode() {
-    return String(route.query.site || config.public.siteCode)
+    return previewSiteCode() || String(config.public.siteCode || '')
+  }
+
+  function apiOrigin() {
+    const serverBase = (config as any).apiBase as string | undefined
+    if (import.meta.server && serverBase) return String(serverBase).replace(/\/$/, '')
+    return String(config.public.apiBase || '').replace(/\/$/, '')
   }
 
   function rewriteAssets<T>(data: T): T {
-    const origin = String(config.public.apiBase || '').replace(/\/$/, '')
+    const origin = apiOrigin()
     if (!origin) return data
     if (typeof data === 'string') {
       return data.replace(/https?:\/\/localhost:8080/g, origin) as T
@@ -25,11 +60,8 @@ export function useStoreApi() {
   }
 
   async function get<T = any>(path: string): Promise<T> {
-    const res = await $fetch<any>(`${config.public.apiBase}/api/store${path}`, {
-      headers: {
-        'X-Site-Code': siteCode(),
-        'X-Locale': locale.value
-      }
+    const res = await $fetch<any>(`${apiOrigin()}/api/store${path}`, {
+      headers: headers()
     })
     if (res && typeof res === 'object' && 'data' in res) {
       return rewriteAssets(res.data as T)
@@ -38,13 +70,10 @@ export function useStoreApi() {
   }
 
   async function post<T = any>(path: string, body: any): Promise<T> {
-    const res = await $fetch<any>(`${config.public.apiBase}/api/store${path}`, {
+    const res = await $fetch<any>(`${apiOrigin()}/api/store${path}`, {
       method: 'POST',
       body,
-      headers: {
-        'X-Site-Code': siteCode(),
-        'X-Locale': locale.value
-      }
+      headers: headers()
     })
     return rewriteAssets((res?.data ?? res) as T)
   }

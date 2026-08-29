@@ -42,13 +42,22 @@
               <el-input v-model="brand.accentColor" />
             </el-form-item>
           </div>
-          <el-form-item label="主视觉图 URL"><el-input v-model="brand.heroImage" /></el-form-item>
+          <el-form-item label="主视觉图"><MediaPicker v-model="brand.heroImage" /></el-form-item>
           <el-form-item label="邮箱"><el-input v-model="brand.email" /></el-form-item>
           <el-form-item label="电话"><el-input v-model="brand.phone" /></el-form-item>
           <el-form-item label="WhatsApp"><el-input v-model="brand.whatsapp" /></el-form-item>
           <el-form-item label="地址"><el-input v-model="brand.address" /></el-form-item>
           <el-form-item label="成立年份"><el-input v-model="brand.founded" /></el-form-item>
           <el-form-item label="出口国家"><el-input v-model="brand.countries" /></el-form-item>
+          <el-form-item label="GA4 测量 ID">
+            <el-input v-model="brand.ga4Id" placeholder="G-XXXXXXXX" />
+            <div class="form-hint">填写后独立站会注入 gtag，用于询盘来源与流量。</div>
+          </el-form-item>
+          <el-form-item label="测试邮件">
+            <el-input v-model="testMailTo" placeholder="你的邮箱" />
+            <el-button size="small" style="margin-top:8px" :loading="mailSending" @click="sendTestMail">发送测试邮件</el-button>
+            <div class="form-hint">需开启 TRADEHUB_MAIL_ENABLED 并配置 SMTP，用于验证询盘通知。</div>
+          </el-form-item>
         </el-form>
       </el-card>
     </div>
@@ -59,9 +68,12 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import http from '../../api/http'
+import MediaPicker from '../../components/MediaPicker.vue'
 
 const site = ref<any>(null)
 const saving = ref(false)
+const mailSending = ref(false)
+const testMailTo = ref('')
 const brand = reactive<any>({
   logoText: 'ZhengHe',
   tagline: '',
@@ -73,7 +85,8 @@ const brand = reactive<any>({
   address: '',
   founded: '',
   countries: '',
-  heroImage: ''
+  heroImage: '',
+  ga4Id: ''
 })
 
 const tokenStyle = computed(() => ({
@@ -114,6 +127,16 @@ async function save() {
     saving.value = false
   }
 }
+async function sendTestMail() {
+  mailSending.value = true
+  try {
+    const res: any = await http.post('/admin/mail/test', { to: testMailTo.value })
+    if (res.data?.ok) ElMessage.success(res.data.message || '已发送')
+    else ElMessage.warning(res.data?.message || '未发送，请检查 SMTP')
+  } finally {
+    mailSending.value = false
+  }
+}
 </script>
 
 <style scoped>
@@ -131,5 +154,6 @@ async function save() {
 .preview-hero-copy { padding: 20px; color: var(--p); }
 .preview-hero-copy h3 { margin: 0 0 8px; font-size: 18px; }
 .preview-hero-copy i { display: inline-block; margin-top: 10px; background: var(--a); color: #fff; font-style: normal; padding: 6px 10px; font-size: 12px; }
+.form-hint { margin-top: 6px; color: #7a8694; font-size: 12px; line-height: 1.5; }
 @media (max-width: 980px) { .theme-grid { grid-template-columns: 1fr; } }
 </style>

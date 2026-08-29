@@ -6,6 +6,7 @@ import com.tradehub.common.api.PageResult;
 import com.tradehub.common.exception.BizException;
 import com.tradehub.common.tenant.TenantContext;
 import com.tradehub.tenant.TenantService;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -67,10 +68,21 @@ public class CatalogService {
         LambdaQueryWrapper<Product> qw = new LambdaQueryWrapper<Product>()
                 .eq(Product::getTenantId, tenantId)
                 .eq(StringUtils.hasText(status), Product::getStatus, status)
-                .like(StringUtils.hasText(keyword), Product::getModel, keyword)
                 .orderByAsc(Product::getSortOrder)
                 .orderByDesc(Product::getId);
         List<Product> all = productMapper.selectList(qw);
+        if (StringUtils.hasText(keyword)) {
+            String needle = keyword.toLowerCase();
+            Map<Long, List<ProductI18n>> i18nAll = loadProductI18n(all.stream().map(Product::getId).toList());
+            all = all.stream().filter(p -> {
+                if ((p.getModel() != null && p.getModel().toLowerCase().contains(needle))
+                        || (p.getSlug() != null && p.getSlug().toLowerCase().contains(needle))) {
+                    return true;
+                }
+                return i18nAll.getOrDefault(p.getId(), List.of()).stream()
+                        .anyMatch(i -> i.getName() != null && i.getName().toLowerCase().contains(needle));
+            }).toList();
+        }
         long total = all.size();
         int from = (int) Math.max(0, (page - 1) * size);
         int to = (int) Math.min(all.size(), from + size);
@@ -106,7 +118,8 @@ public class CatalogService {
         product.setCoverUrl(req.getCoverUrl());
         product.setGalleryJson(Jsons.toJson(req.getGallery()));
         product.setAttrJson(Jsons.toJson(req.getAttrs()));
-        product.setStatus(req.getStatus() == null ? "draft" : req.getStatus());
+        product.setStatus(normalizePublishStatus(req.getStatus(), req.getScheduledAt()));
+        product.setScheduledAt(req.getScheduledAt());
         product.setSortOrder(req.getSortOrder() == null ? 0 : req.getSortOrder());
         product.setFeatured(Boolean.TRUE.equals(req.getFeatured()) ? 1 : 0);
         if ("live".equals(product.getStatus()) && product.getPublishedAt() == null) {
@@ -147,6 +160,92 @@ public class CatalogService {
         productMapper.updateById(product);
     }
 
+    public Map<String, Object> duplicate(Long id, String locale) {
+        Product src = productMapper.selectById(id);
+        if (src == null || !src.getTenantId().equals(tenantService.workingTenantId())) {
+            throw new BizException(404, "product not found");
+        }
+        Product copy = new Product();
+        copy.setTenantId(src.getTenantId());
+        copy.setCategoryId(src.getCategoryId());
+        copy.setSlug(src.getSlug() + "-copy");
+        copy.setModel(src.getModel() == null ? "COPY" : src.getModel() + "-COPY");
+        copy.setCoverUrl(src.getCoverUrl());
+        copy.setGalleryJson(src.getGalleryJson());
+        copy.setAttrJson(src.getAttrJson());
+        copy.setStatus("draft");
+        copy.setSortOrder(src.getSortOrder());
+        copy.setFeatured(0);
+        productMapper.insert(copy);
+        for (ProductI18n row : productI18nMapper.selectList(new LambdaQueryWrapper<ProductI18n>()
+                .eq(ProductI18n::getProductId, src.getId()))) {
+            ProductI18n n = new ProductI18n();
+            n.setTenantId(row.getTenantId());
+            n.setProductId(copy.getId());
+            n.setLocale(row.getLocale());
+            n.setSlug(row.getSlug() == null ? null : row.getSlug() + "-copy");
+            n.setName((row.getName() == null ? "" : row.getName()) + " (copy)");
+            n.setSummary(row.getSummary());
+            n.setContent(row.getContent());
+            n.setSeoTitle(row.getSeoTitle());
+            n.setSeoDescription(row.getSeoDescription());
+            productI18nMapper.insert(n);
+        }
+        return getProduct(copy.getId(), locale);
+    }
+
+    public int bulkStatus(List<Long> ids, String status) {
+        int n = 0;
+        if (ids == null) {
+            return 0;
+        }
+        for (Long id : ids) {
+            changeStatus(id, status);
+            n++;
+        }
+        return n;
+    }
+
+    public String exportCsv(String locale) {
+        List<Map<String, Object>> list = listProducts(locale, "", null, 1, 10_000).getList();
+        StringBuilder sb = new StringBuilder();
+        sb.append("id,model,slug,name,status,featured,coverUrl\n");
+        for (Map<String, Object> row : list) {
+            sb.append(row.get("id")).append(',')
+                    .append(csv(row.get("model"))).append(',')
+                    .append(csv(row.get("slug"))).append(',')
+                    .append(csv(row.get("name"))).append(',')
+                    .append(csv(row.get("status"))).append(',')
+                    .append(row.get("featured")).append(',')
+                    .append(csv(row.get("coverUrl"))).append('\n');
+        }
+        return sb.toString();
+    }
+
+    private String csv(Object value) {
+        if (value == null) {
+            return "";
+        }
+        String text = String.valueOf(value).replace("\"", "\"\"");
+        if (text.contains(",") || text.contains("\"") || text.contains("\n")) {
+            return "\"" + text + "\"";
+        }
+        return text;
+    }
+
+    public long countDraft(Long tenantId) {
+        return productMapper.selectCount(new LambdaQueryWrapper<Product>()
+                .eq(Product::getTenantId, tenantId)
+                .eq(Product::getStatus, "draft"));
+    }
+
+    public long countMissingCover(Long tenantId) {
+        return productMapper.selectList(new LambdaQueryWrapper<Product>().eq(Product::getTenantId, tenantId))
+                .stream()
+                .filter(p -> !StringUtils.hasText(p.getCoverUrl()))
+                .count();
+    }
+
     public Map<String, Object> productView(Product product, String locale, boolean allLocales) {
         List<ProductI18n> translations = productI18nMapper.selectList(new LambdaQueryWrapper<ProductI18n>()
                 .eq(ProductI18n::getProductId, product.getId()));
@@ -167,6 +266,7 @@ public class CatalogService {
         map.put("featured", Integer.valueOf(1).equals(product.getFeatured()));
         map.put("sortOrder", product.getSortOrder());
         map.put("publishedAt", product.getPublishedAt());
+        map.put("scheduledAt", product.getScheduledAt());
         if (i18n != null) {
             map.put("name", i18n.getName());
             map.put("summary", i18n.getSummary());
@@ -289,6 +389,16 @@ public class CatalogService {
                         .orElse(list.get(0)));
     }
 
+    private String normalizePublishStatus(String status, LocalDateTime scheduledAt) {
+        if (!StringUtils.hasText(status)) {
+            return scheduledAt != null && scheduledAt.isAfter(LocalDateTime.now()) ? "scheduled" : "draft";
+        }
+        if ("scheduled".equals(status) && scheduledAt != null && !scheduledAt.isAfter(LocalDateTime.now())) {
+            return "live";
+        }
+        return status;
+    }
+
     @Data
     public static class CategorySaveRequest {
         private Long id;
@@ -316,6 +426,8 @@ public class CatalogService {
         private String status;
         private Integer sortOrder;
         private Boolean featured;
+        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+        private LocalDateTime scheduledAt;
         private String name;
         private String summary;
         private String content;

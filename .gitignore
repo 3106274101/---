@@ -18,7 +18,8 @@ apps/admin/dist/
 apps/storefront/.nuxt/
 apps/storefront/.output/
 
-# Env
+backups/
+
 .env
 .env.local
 .env.*.local

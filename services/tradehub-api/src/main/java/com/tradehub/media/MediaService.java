@@ -2,15 +2,13 @@ package com.tradehub.media;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.tradehub.common.exception.BizException;
+import com.tradehub.storage.ObjectStorage;
 import com.tradehub.tenant.TenantService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -22,10 +20,7 @@ public class MediaService {
             "image/jpeg", "image/png", "image/webp", "image/gif", "application/pdf");
     private final AssetMapper assetMapper;
     private final TenantService tenantService;
-    @Value("${tradehub.upload.dir}")
-    private String uploadDir;
-    @Value("${tradehub.upload.public-base}")
-    private String publicBase;
+    private final ObjectStorage objectStorage;
 
     public Asset upload(MultipartFile file, String alt) throws IOException {
         if (file.isEmpty()) {
@@ -38,13 +33,11 @@ public class MediaService {
         Long tenantId = tenantService.workingTenantId();
         String ext = ext(file.getOriginalFilename());
         String name = UUID.randomUUID().toString().replace("-", "") + ext;
-        Path dir = Path.of(uploadDir, String.valueOf(tenantId));
-        Files.createDirectories(dir);
-        Path dest = dir.resolve(name);
-        file.transferTo(dest.toFile());
+        String key = tenantId + "/" + name;
+        var stored = objectStorage.put(key, file.getInputStream(), file.getSize(), mime);
         Asset asset = new Asset();
         asset.setTenantId(tenantId);
-        asset.setUrl(publicBase + "/" + tenantId + "/" + name);
+        asset.setUrl(stored.url());
         asset.setOriginalName(file.getOriginalFilename());
         asset.setMime(mime);
         asset.setSizeBytes(file.getSize());

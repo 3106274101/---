@@ -88,7 +88,9 @@ public class DemoDataSeeder implements CommandLineRunner {
         Site site = site(tenant);
         UserAccount superAdmin = user(null, "admin", "admin123", "Platform Admin", "SUPER", 1);
         user(tenant.getId(), "fueltech", "fueltech123", "ZhengHe Owner", "OWNER", 0);
-        log.info("Seeded demo users: admin/admin123 , fueltech/fueltech123 (superAdminId={})", superAdmin.getId());
+        user(tenant.getId(), "editor", "editor123", "Site Editor", "EDITOR", 0);
+        user(tenant.getId(), "sales", "sales123", "Sales", "SALES", 0);
+        log.info("Seeded demo users: admin/admin123 , fueltech/fueltech123 , editor/editor123 , sales/sales123 (superAdminId={})", superAdmin.getId());
 
         Category dispensers = category(tenant, "fuel-dispensers", 1, "Fuel Dispensers", "加油机整机",
                 "Honesty, Intelligent, Clever, Elite, Aurora and Brilliance series for petrol stations.",

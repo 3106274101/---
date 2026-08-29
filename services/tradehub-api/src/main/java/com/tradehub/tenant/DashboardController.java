@@ -34,6 +34,12 @@ public class DashboardController {
         data.put("sitesList", tenantService.listSites().getList());
         data.put("recentInquiries", inquiryService.adminList(null, 1, 8).getList());
         data.put("newInquiries", inquiryService.adminList("new", 1, 20).getTotal());
+        data.put("overdueFollowups", inquiryService.countOverdue(tenantId));
+        data.put("draftProducts", productMapper.selectCount(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<Product>()
+                .eq(Product::getTenantId, tenantId).eq(Product::getStatus, "draft")));
+        data.put("missingCover", productMapper.selectList(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<Product>()
+                        .eq(Product::getTenantId, tenantId)).stream()
+                .filter(p -> p.getCoverUrl() == null || p.getCoverUrl().isBlank()).count());
         return R.ok(data);
     }
 }

@@ -238,6 +238,18 @@ summary { cursor: pointer; color: var(--navy); }
   background: #25d366; color: #fff; width: 56px; height: 56px; border-radius: 50%;
   display: grid; place-items: center; font-weight: 800; box-shadow: 0 8px 20px rgba(0,0,0,.18);
 }
+.sticky-cta, .sticky-quote {
+  display: flex; justify-content: space-between; align-items: center; gap: 16px;
+  background: var(--navy); color: #fff; padding: 12px 20px;
+}
+.sticky-cta {
+  position: fixed; left: 0; right: 76px; bottom: 0; z-index: 22; margin: 0;
+}
+.sticky-quote {
+  position: sticky; bottom: 0; z-index: 22; margin: 28px 0 0;
+}
+.site-root { padding-bottom: 58px; }
+.sticky-cta .btn, .sticky-quote .btn { flex-shrink: 0; }
 .search-page form { display: flex; gap: 8px; max-width: 560px; }
 .search-page input { flex: 1; padding: 10px 12px; border: 1px solid var(--line); font: inherit; }
 

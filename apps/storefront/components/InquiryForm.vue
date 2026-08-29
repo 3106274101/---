@@ -1,6 +1,7 @@
 <template>
   <form class="form" @submit.prevent="submit">
     <input class="hp" v-model="form.website" tabindex="-1" autocomplete="off" />
+    <p v-if="form.productName" class="muted">{{ form.productName }}</p>
     <input v-model="form.name" required :placeholder="$t('form.name')" />
     <input v-model="form.company" :placeholder="$t('form.company')" />
     <input v-model="form.email" type="email" required :placeholder="$t('form.email')" />
@@ -16,13 +17,26 @@
 </template>
 
 <script setup lang="ts">
-const props = defineProps<{ productId?: number }>()
+const props = defineProps<{ productId?: number; productName?: string }>()
+const route = useRoute()
 const { post } = useStoreApi()
 const loading = ref(false)
 const done = ref(false)
 const agree = ref(false)
+const qName = String(route.query.product || props.productName || '')
+const qId = Number(route.query.productId || props.productId || 0) || props.productId
 const form = reactive({
-  name: '', company: '', email: '', phone: '', country: '', whatsapp: '', quantity: '', message: '', website: '', productId: props.productId
+  name: '',
+  company: '',
+  email: '',
+  phone: '',
+  country: '',
+  whatsapp: '',
+  quantity: '',
+  message: qName ? `I am interested in ${qName}. Please quote voltage, hose count and destination port.` : '',
+  website: '',
+  productId: qId,
+  productName: qName
 })
 
 async function submit() {

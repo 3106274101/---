@@ -9,7 +9,7 @@
         TRADEHUB
       </div>
       <h1>贸站通工作台</h1>
-      <p>统一管理所有外贸独立站。演示账号 admin / admin123</p>
+      <p>演示：超管 admin / admin123，老板 fueltech / fueltech123（新库还有 editor / sales）</p>
       <el-form @submit.prevent="submit">
         <el-form-item><el-input v-model="username" placeholder="用户名" size="large" /></el-form-item>
         <el-form-item><el-input v-model="password" type="password" placeholder="密码" show-password size="large" /></el-form-item>
@@ -37,7 +37,12 @@ async function submit() {
     await auth.login(username.value, password.value)
     router.push('/')
   } catch (e: any) {
-    ElMessage.error(e.message || '登录失败')
+    const msg = e.message || '登录失败'
+    if (e.code === 423 || /locked/i.test(msg)) {
+      ElMessage.error('账号已锁定 15 分钟，请稍后再试')
+    } else {
+      ElMessage.error(msg)
+    }
   } finally {
     loading.value = false
   }

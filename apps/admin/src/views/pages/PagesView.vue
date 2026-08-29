@@ -15,12 +15,13 @@
         <div class="item-body">
           <div class="item-head">
             <h3>{{ row.title }}</h3>
-            <span class="pill" :class="row.status === 'live' ? 'pill-live' : 'pill-building'">{{ row.status === 'live' ? '已发布' : '草稿' }}</span>
+            <span class="pill" :class="row.status === 'live' ? 'pill-live' : row.status === 'scheduled' ? 'pill-building' : 'pill-building'">{{ statusLabel(row.status) }}</span>
           </div>
           <p>/{{ row.slug }}</p>
         </div>
         <div class="item-foot" @click.stop>
           <el-button size="small" type="primary" @click="$router.push('/pages/' + row.id)">装修</el-button>
+          <el-button size="small" @click="duplicate(row)">复制</el-button>
           <el-button size="small" @click="preview(row)">预览</el-button>
         </div>
       </article>
@@ -31,6 +32,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
 import http from '../../api/http'
 import { storePreview } from '../../config'
 
@@ -48,12 +50,20 @@ onMounted(async () => {
 function typeLabel(type: string) {
   return types[type] || type || '页面'
 }
+function statusLabel(status: string) {
+  return ({ live: '已发布', draft: '草稿', scheduled: '定时发布' } as any)[status] || status
+}
 async function create() {
   const siteId = Number(localStorage.getItem('th_site') || 1)
   const res: any = await http.post('/admin/pages', {
     siteId, pageType: 'custom', slug: 'page-' + Date.now(), status: 'draft',
     title: 'New page', seoTitle: 'New page', blocks: []
   })
+  router.push('/pages/' + res.data.id)
+}
+async function duplicate(row: any) {
+  const res: any = await http.post('/admin/pages/' + row.id + '/duplicate')
+  ElMessage.success('已复制为草稿页')
   router.push('/pages/' + res.data.id)
 }
 function preview(row: any) {

@@ -34,8 +34,9 @@ public class StorefrontSiteFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         if (request.getRequestURI().startsWith("/api/store")) {
             String code = firstNonBlank(request.getHeader("X-Site-Code"), request.getParameter("site"));
+            String host = firstNonBlank(request.getHeader("X-Site-Host"), request.getHeader("Host"));
             String locale = firstNonBlank(request.getHeader("X-Locale"), request.getParameter("locale"), "en");
-            Site site = tenantService.resolveByHostOrCode(request.getHeader("Host"), code, defaultSiteCode);
+            Site site = tenantService.resolveByHostOrCode(host, code, defaultSiteCode);
             if (site != null) {
                 request.setAttribute(SITE_ATTR, site);
                 TenantContext.set(site.getTenantId(), site.getId(), locale, false);

@@ -13,12 +13,22 @@
         <button :class="{ on: device === 'mobile' }" @click="device = 'mobile'">手机</button>
       </div>
       <div class="builder-bar-right">
-        <el-select v-model="page.status" size="small" style="width: 110px">
+        <el-select v-model="page.status" size="small" style="width: 120px">
           <el-option label="草稿" value="draft" />
+          <el-option label="定时发布" value="scheduled" />
           <el-option label="已发布" value="live" />
         </el-select>
+        <el-date-picker
+          v-if="page.status === 'scheduled'"
+          v-model="page.scheduledAt"
+          type="datetime"
+          size="small"
+          value-format="YYYY-MM-DD HH:mm:ss"
+          placeholder="发布时间"
+          style="width: 190px"
+        />
         <el-button @click="previewSite">预览站点</el-button>
-        <el-button type="primary" :loading="saving" @click="save" style="background:#0a2540;border-color:#0a2540">保存并发布</el-button>
+        <el-button type="primary" :loading="saving" @click="save" style="background:#0a2540;border-color:#0a2540">保存</el-button>
       </div>
     </header>
 
@@ -222,9 +232,8 @@ function syncSideTexts() {
 async function save() {
   saving.value = true
   try {
-    await http.put('/admin/pages/' + page.value.id, { ...page.value, status: 'live' })
-    page.value.status = 'live'
-    ElMessage.success('已保存，独立站刷新即可看到')
+    await http.put('/admin/pages/' + page.value.id, page.value)
+    ElMessage.success(page.value.status === 'live' ? '已发布，独立站刷新即可看到' : '已保存')
   } finally {
     saving.value = false
   }

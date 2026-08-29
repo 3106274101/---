@@ -1,4 +1,5 @@
-# Optional production-like stack. Local MVP defaults to H2 (no Docker required).
+# One-command full stack: MySQL + API + Admin + Storefront + MinIO
+# Usage: docker compose -f infra/docker-compose.yml up --build
 services:
   mysql:
     image: mysql:8.0
@@ -13,6 +14,35 @@ services:
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     volumes:
       - tradehub-mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-utradehub", "-ptradehub"]
+      interval: 8s
+      timeout: 5s
+      retries: 20
+
+  minio:
+    image: minio/minio:latest
+    container_name: tradehub-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: tradehub
+      MINIO_ROOT_PASSWORD: tradehubsecret
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - tradehub-minio:/data
+
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      - minio
+    entrypoint: ["/bin/sh", "-c"]
+    command: >
+      "sleep 4;
+       mc alias set local http://minio:9000 tradehub tradehubsecret;
+       mc mb -p local/tradehub || true;
+       mc anonymous set download local/tradehub || true;"
 
   redis:
     image: redis:7-alpine
@@ -20,5 +50,65 @@ services:
     ports:
       - "6379:6379"
 
+  api:
+    build:
+      context: ../services/tradehub-api
+      dockerfile: Dockerfile
+    container_name: tradehub-api
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      TRADEHUB_PROFILE: mysql
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_DB: tradehub
+      MYSQL_USER: tradehub
+      MYSQL_PASSWORD: tradehub
+      TRADEHUB_UPLOAD_DIR: /app/uploads
+      TRADEHUB_UPLOAD_PUBLIC_BASE: http://localhost:8080/files
+      TRADEHUB_CORS_ORIGINS: http://localhost:8081,http://localhost:3000,http://localhost,http://127.0.0.1:8081,http://127.0.0.1:3000
+      TRADEHUB_MAIL_ENABLED: "false"
+      TRADEHUB_STORAGE_TYPE: local
+      TRADEHUB_S3_ENDPOINT: http://minio:9000
+      TRADEHUB_S3_BUCKET: tradehub
+      TRADEHUB_S3_ACCESS_KEY: tradehub
+      TRADEHUB_S3_SECRET_KEY: tradehubsecret
+      TRADEHUB_S3_PUBLIC_BASE: http://localhost:9000/tradehub
+    ports:
+      - "8080:8080"
+
+  admin:
+    build:
+      context: ../apps/admin
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE: ""
+        VITE_STOREFRONT_URL: http://localhost:3000
+    container_name: tradehub-admin
+    depends_on:
+      - api
+    ports:
+      - "8081:80"
+
+  storefront:
+    build:
+      context: ../apps/storefront
+      dockerfile: Dockerfile
+      args:
+        NUXT_PUBLIC_API_BASE: http://localhost:8080
+        NUXT_API_BASE: http://api:8080
+        NUXT_PUBLIC_SITE_URL: http://localhost:3000
+    container_name: tradehub-storefront
+    depends_on:
+      - api
+    environment:
+      NUXT_PUBLIC_API_BASE: http://localhost:8080
+      NUXT_API_BASE: http://api:8080
+      NUXT_PUBLIC_SITE_URL: http://localhost:3000
+    ports:
+      - "3000:3000"
+
 volumes:
   tradehub-mysql:
+  tradehub-minio:

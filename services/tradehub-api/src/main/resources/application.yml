@@ -14,11 +14,21 @@ spring:
     default-property-inclusion: non_null
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: UTC
+    serialization:
+      write-dates-as-timestamps: false
   sql:
     init:
       mode: always
       continue-on-error: true
-      schema-locations: classpath:db/schema.sql
+      schema-locations: classpath:db/schema.sql,classpath:db/patch.sql
+  mail:
+    host: ${MAIL_HOST:}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
 
 mybatis-plus:
   configuration:
@@ -41,6 +51,18 @@ tradehub:
     origins: ${TRADEHUB_CORS_ORIGINS:http://localhost:5173,http://localhost:3000}
   store:
     default-site-code: ${TRADEHUB_DEFAULT_SITE_CODE:fueltech}
+  mail:
+    enabled: ${TRADEHUB_MAIL_ENABLED:false}
+    from: ${TRADEHUB_MAIL_FROM:noreply@localhost}
+    notify-to: ${TRADEHUB_MAIL_TO:}
+  storage:
+    type: ${TRADEHUB_STORAGE_TYPE:local}
+    s3-endpoint: ${TRADEHUB_S3_ENDPOINT:}
+    s3-region: ${TRADEHUB_S3_REGION:us-east-1}
+    s3-bucket: ${TRADEHUB_S3_BUCKET:tradehub}
+    s3-access-key: ${TRADEHUB_S3_ACCESS_KEY:}
+    s3-secret-key: ${TRADEHUB_S3_SECRET_KEY:}
+    s3-public-base: ${TRADEHUB_S3_PUBLIC_BASE:}
 
 ---
 spring:

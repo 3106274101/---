@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.tradehub.common.Jsons;
 import com.tradehub.common.exception.BizException;
 import com.tradehub.tenant.TenantService;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -55,7 +56,8 @@ public class CmsService {
         page.setSiteId(req.getSiteId());
         page.setPageType(req.getPageType());
         page.setSlug(req.getSlug());
-        page.setStatus(req.getStatus() == null ? "draft" : req.getStatus());
+        page.setStatus(normalizePublishStatus(req.getStatus(), req.getScheduledAt()));
+        page.setScheduledAt(req.getScheduledAt());
         if (page.getId() == null) {
             pageMapper.insert(page);
         } else {
@@ -107,7 +109,8 @@ public class CmsService {
         article.setSiteId(req.getSiteId());
         article.setSlug(req.getSlug());
         article.setCoverUrl(req.getCoverUrl());
-        article.setStatus(req.getStatus() == null ? "draft" : req.getStatus());
+        article.setStatus(normalizePublishStatus(req.getStatus(), req.getScheduledAt()));
+        article.setScheduledAt(req.getScheduledAt());
         if ("live".equals(article.getStatus()) && article.getPublishedAt() == null) {
             article.setPublishedAt(LocalDateTime.now());
         }
@@ -139,6 +142,62 @@ public class CmsService {
         return articleView(article, locale);
     }
 
+    public Map<String, Object> duplicatePage(Long id, String locale) {
+        CmsPage src = pageMapper.selectById(id);
+        if (src == null || !src.getTenantId().equals(tenantService.workingTenantId())) {
+            throw new BizException(404, "page not found");
+        }
+        CmsPage copy = new CmsPage();
+        copy.setTenantId(src.getTenantId());
+        copy.setSiteId(src.getSiteId());
+        copy.setPageType(src.getPageType());
+        copy.setSlug(src.getSlug() + "-copy");
+        copy.setStatus("draft");
+        pageMapper.insert(copy);
+        for (CmsPageI18n row : pageI18nMapper.selectList(new LambdaQueryWrapper<CmsPageI18n>().eq(CmsPageI18n::getPageId, src.getId()))) {
+            CmsPageI18n n = new CmsPageI18n();
+            n.setTenantId(row.getTenantId());
+            n.setPageId(copy.getId());
+            n.setLocale(row.getLocale());
+            n.setTitle((row.getTitle() == null ? "" : row.getTitle()) + " (copy)");
+            n.setSeoTitle(row.getSeoTitle());
+            n.setSeoDescription(row.getSeoDescription());
+            n.setCanonical(row.getCanonical());
+            n.setOgImage(row.getOgImage());
+            n.setBlocksJson(row.getBlocksJson());
+            pageI18nMapper.insert(n);
+        }
+        return pageView(copy, locale);
+    }
+
+    public Map<String, Object> duplicateArticle(Long id, String locale) {
+        Article src = articleMapper.selectById(id);
+        if (src == null || !src.getTenantId().equals(tenantService.workingTenantId())) {
+            throw new BizException(404, "article not found");
+        }
+        Article copy = new Article();
+        copy.setTenantId(src.getTenantId());
+        copy.setSiteId(src.getSiteId());
+        copy.setSlug(src.getSlug() + "-copy");
+        copy.setCoverUrl(src.getCoverUrl());
+        copy.setStatus("draft");
+        articleMapper.insert(copy);
+        for (ArticleI18n row : articleI18nMapper.selectList(new LambdaQueryWrapper<ArticleI18n>().eq(ArticleI18n::getArticleId, src.getId()))) {
+            ArticleI18n n = new ArticleI18n();
+            n.setTenantId(row.getTenantId());
+            n.setArticleId(copy.getId());
+            n.setLocale(row.getLocale());
+            n.setSlug(row.getSlug() == null ? null : row.getSlug() + "-copy");
+            n.setTitle((row.getTitle() == null ? "" : row.getTitle()) + " (copy)");
+            n.setSummary(row.getSummary());
+            n.setContent(row.getContent());
+            n.setSeoTitle(row.getSeoTitle());
+            n.setSeoDescription(row.getSeoDescription());
+            articleI18nMapper.insert(n);
+        }
+        return articleView(copy, locale);
+    }
+
     public Map<String, Object> pageView(CmsPage page, String locale) {
         CmsPageI18n i18n = pickPageI18n(page.getId(), locale);
         Map<String, Object> map = new HashMap<>();
@@ -147,6 +206,7 @@ public class CmsService {
         map.put("pageType", page.getPageType());
         map.put("slug", page.getSlug());
         map.put("status", page.getStatus());
+        map.put("scheduledAt", page.getScheduledAt());
         if (i18n != null) {
             map.put("title", i18n.getTitle());
             map.put("seoTitle", i18n.getSeoTitle());
@@ -190,6 +250,7 @@ public class CmsService {
         map.put("coverUrl", article.getCoverUrl());
         map.put("status", article.getStatus());
         map.put("publishedAt", article.getPublishedAt());
+        map.put("scheduledAt", article.getScheduledAt());
         if (i18n != null) {
             map.put("title", i18n.getTitle());
             map.put("summary", i18n.getSummary());
@@ -225,6 +286,16 @@ public class CmsService {
                 .last("limit 1"));
     }
 
+    private String normalizePublishStatus(String status, LocalDateTime scheduledAt) {
+        if (!StringUtils.hasText(status)) {
+            return scheduledAt != null && scheduledAt.isAfter(LocalDateTime.now()) ? "scheduled" : "draft";
+        }
+        if ("scheduled".equals(status) && scheduledAt != null && !scheduledAt.isAfter(LocalDateTime.now())) {
+            return "live";
+        }
+        return status;
+    }
+
     @Data
     public static class PageSaveRequest {
         private Long id;
@@ -232,6 +303,8 @@ public class CmsService {
         private String pageType;
         private String slug;
         private String status;
+        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+        private LocalDateTime scheduledAt;
         private String title;
         private String seoTitle;
         private String seoDescription;
@@ -248,6 +321,8 @@ public class CmsService {
         private String i18nSlug;
         private String coverUrl;
         private String status;
+        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+        private LocalDateTime scheduledAt;
         private String title;
         private String summary;
         private String content;
